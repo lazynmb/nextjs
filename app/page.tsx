@@ -1,5 +1,5 @@
 import React from 'react';
-import { calculate } from './pages/app/calc';
+import { calculate } from './pages/app/calc.js'; // Add missing import statement
 
 export const HomePage = () => {
   const result = calculate(); // Wywołanie funkcji calculate z pliku calc.js
