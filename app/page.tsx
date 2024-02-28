@@ -1,27 +1,32 @@
-const fs = require('fs');
+import React, { useState, useEffect } from 'react';
+import fs from 'fs';
 
+function Page() {
+  const [data, setData] = useState({
+    calcFromPairsResult: null,
+    calcFromNegativePairsResult: null,
+    categoriesResult: null,
+  });
 
-// Wczytaj dane z pliku JSON
-const calcFromPairsResult = require('ścieżka/do/calcFromPairsResult.json');
-const calcFromNegativePairsResult = require('ścieżka/do/calcFromNegativePairsResult.json');
-const categoriesResult = require('ścieżka/do/categoriesResult.json');
+  useEffect(() => {
+    // Odczytaj dane z pliku
+    const fileData = fs.readFileSync('./page.tsx', 'utf8');
 
-const Page = () => {
+    // Przekształć dane JSON z powrotem na obiekt JavaScript
+    const parsedData = JSON.parse(fileData);
+
+    // Ustaw stan danych
+    setData(parsedData);
+  }, []);
+
   return (
-      <div>
-          <h1>Wyniki Obliczeń</h1>
-          <h2>Wynik z pary: {calcFromPairsResult}</h2>
-          <h2>Wynik z ujemnych par: {calcFromNegativePairsResult}</h2>
-          <h2>Wynik kategorii: {categoriesResult}</h2>
-      </div>
+    <div>
+      <h1>Data from page.tsx:</h1>
+      <p>calcFromPairsResult: {data.calcFromPairsResult}</p>
+      <p>calcFromNegativePairsResult: {data.calcFromNegativePairsResult}</p>
+      <p>categoriesResult: {data.categoriesResult}</p>
+    </div>
   );
-};
+}
 
 export default Page;
-
-// Zapisz dane do pliku ./page.tsx
-fs.writeFileSync('./page.tsx', `
-    export const calcFromPairsResult = ${JSON.stringify(calcFromPairsResult)};
-    export const calcFromNegativePairsResult = ${JSON.stringify(calcFromNegativePairsResult)};
-    export const categoriesResult = ${JSON.stringify(categoriesResult)};
-`);
