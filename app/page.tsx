@@ -1,23 +1,11 @@
-import React, { useState, useEffect } from 'react';
 import fs from 'fs';
+import path from 'path';
+import { useEffect, useState } from 'react';
 
-function Page() {
-  const [data, setData] = useState({
-    calcFromPairsResult: null,
-    calcFromNegativePairsResult: null,
-    categoriesResult: null,
-  });
+export default function Page({ initialData }) {
+  const [data, setData] = useState(initialData);
 
-  useEffect(() => {
-    // Odczytaj dane z pliku
-    const fileData = fs.readFileSync('./page.tsx', 'utf8');
-
-    // Przekształć dane JSON z powrotem na obiekt JavaScript
-    const parsedData = JSON.parse(fileData);
-
-    // Ustaw stan danych
-    setData(parsedData);
-  }, []);
+  // Use data in your component...
 
   return (
     <div>
@@ -29,4 +17,14 @@ function Page() {
   );
 }
 
-export default Page;
+export async function getServerSideProps() {
+  const filePath = path.join(process.cwd(), 'page.tsx');
+  const fileData = fs.readFileSync(filePath, 'utf8');
+  const initialData = JSON.parse(fileData);
+
+  return {
+    props: {
+      initialData,
+    },
+  };
+}
