@@ -1,3 +1,5 @@
+use client;
+
 import { useEffect, useState } from 'react';
 
 const Page = () => {
@@ -5,6 +7,8 @@ const Page = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Upewnij się, że ścieżka jest poprawna i dostępna z kontekstu, w którym jest wywoływana.
+      // Na przykład, podczas pracy lokalnie, może być potrzebne pełne URL do API.
       const res = await fetch('/api/calc');
       const newData = await res.json();
       setData(newData);
@@ -18,7 +22,7 @@ const Page = () => {
   return (
     <div>
       <h1>Wyniki</h1>
-      {/* Renderuj swoje dane */}
+      {/* Renderowanie danych */}
     </div>
   );
 };
