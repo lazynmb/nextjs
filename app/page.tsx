@@ -1,38 +1,26 @@
-// pages/index.tsx
+import { useEffect, useState } from 'react';
 
-export async function getServerSideProps() {
-  const res = await fetch('/api/calc');
-  const data = await res.json();
+const Page = () => {
+  const [data, setData] = useState(null);
 
-  return {
-    props: {
-      data,
-    },
-  };
-}
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch('/api/calc');
+      const newData = await res.json();
+      setData(newData);
+    };
 
-const HomePage = ({ data }) => {
+    fetchData();
+  }, []);
+
+  if (!data) return <div>Loading...</div>;
+
   return (
     <div>
       <h1>Wyniki</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Nazwa</th>
-            <th>Wartość</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data && Object.entries(data).map(([key, value]) => (
-            <tr key={key}>
-              <td>{key}</td>
-              <td>{value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Renderuj swoje dane */}
     </div>
   );
-}
+};
 
-export default HomePage;
+export default Page;
