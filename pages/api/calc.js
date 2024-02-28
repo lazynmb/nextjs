@@ -144,6 +144,11 @@ const calcFromPairsResult = calcFromPairs(positivePairs);
 const calcFromNegativePairsResult = calcFromNegativePairs(negativePairs, positivePairs);
 const categoriesResult = categories(filePath);
 
+export default function handler(req, res) {
+    // Your logic here...
+    res.status(200).json({ calcFromPairsResult, calcFromNegativePairsResult, categoriesResult });
+  }
+
 fs.writeFileSync('./page.tsx', JSON.stringify({
     calcFromPairsResult,
     calcFromNegativePairsResult,
