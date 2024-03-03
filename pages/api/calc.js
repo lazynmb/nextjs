@@ -136,26 +136,31 @@ function categories(filePath){
 }
 
 
+// Funkcje parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, categories muszą być zdefiniowane
+// lub zaimportowane wcześniej w tym pliku.
 
-// Invoke the functions and send the results to ./page.tsx
-const filePath = './Doks'; // Replace with the actual file path
-const { positivePairs, negativePairs } = parseHtmlAndExtractData(filePath);
-const calcFromPairsResult = calcFromPairs(positivePairs);
-const calcFromNegativePairsResult = calcFromNegativePairs(negativePairs, positivePairs);
-const categoriesResult = categories(filePath);
+export default async function handler(req, res) {
+    try {
+        const directoryPath = path.join(process.cwd(), 'Doks'); // Użyj process.cwd() dla ścieżki bezwzględnej
+        const latestFile = findLatestHtmlFile(directoryPath);
+        
+        if (!latestFile) {
+            return res.status(404).json({ message: 'Nie znaleziono najnowszego pliku HTML' });
+        }
 
-export default function handler(req, res) {
-    // Your logic here...
-    res.status(200).json({ calcFromPairsResult, calcFromNegativePairsResult, categoriesResult });
-  }
+        const filePath = path.join(directoryPath, latestFile);
+        const { positivePairs, negativePairs } = parseHtmlAndExtractData(filePath);
+        const calcFromPairsResult = calcFromPairs(positivePairs);
+        const calcFromNegativePairsResult = calcFromNegativePairs(negativePairs, positivePairs);
+        const categoriesResults = categories(filePath); // Zaktualizuj tę funkcję zgodnie z potrzebami
 
-fs.writeFileSync('./page.tsx', JSON.stringify({
-    calcFromPairsResult,
-    calcFromNegativePairsResult,
-    categoriesResult
-}));
-
-
+        // Zwróć wyniki jako JSON
+        res.status(200).json({ calcFromPairsResult, calcFromNegativePairsResult, categoriesResults });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
 
 
 // import fs from 'fs';

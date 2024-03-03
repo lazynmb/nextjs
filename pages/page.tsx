@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface DataType {
   calcFromPairsResult: number; // Replace 'any' with the actual type of calcFromPairsResult
@@ -6,23 +6,29 @@ interface DataType {
   categoriesResult: number; // Replace 'any' with the actual type of categoriesResult
 }
 
+
+
+
 export default function Page() {
-  const [data, setData] = useState<DataType | null>(null);
+  const [data, setData] = useState({ calcFromPairsResult: null, calcFromNegativePairsResult: null, categoriesResult: null });
 
-  if (!data) {
-    fetch('https://nextjs-liard-alpha-14.vercel.app/pages/api/calc', { cache: 'no-store' })
+  useEffect(() => {
+    fetch('/api/calc')
       .then(response => response.json())
-      .then(fetchedData => setData(fetchedData));
+      .then(data => setData(data))
+      .catch(error => console.error("Failed to fetch data:", error));
+  }, []);
 
-    return 'Loading...';
+  if (!data.calcFromPairsResult) {
+    return <p>Loading...</p>;
   }
 
   return (
     <div>
       <h1>Data from calc.js:</h1>
-      <p>calcFromPairsResult: {data.calcFromPairsResult}</p>
-      <p>calcFromNegativePairsResult: {data.calcFromNegativePairsResult}</p>
-      <p>categoriesResult: {data.categoriesResult}</p>
+      <p>calcFromPairsResult - Total Net: {(data.calcFromPairsResult as any).totalNet}</p>
+      <p>calcFromPairsResult - Total VAT: {(data.calcFromPairsResult as any).totalVAT}</p>
+      <p>calcFromPairsResult - Total Brutto: {(data.calcFromPairsResult as any).totalBrutto}</p>
     </div>
   );
 }
