@@ -39,8 +39,19 @@ export default function Page() {
 
   return (
     <div className="container">
+      <div className="tabela w-50 mx-auto">
       <h3 className="white">Data from calc.js:</h3>
-      <table className="table table-dark">
+      <table className="table table-bordered table-dark">
+      <thead className="thead-dark">
+        <tr>
+          <th scope="col" className="text-center">KATEGORIE</th>
+          <th scope="col" className="text-center">KWOTA</th>
+        </tr>
+        <tr>
+          <th scope="col">ZYSKI</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
         <tbody>
           <tr>
             <td>Total Brutto:</td>
@@ -54,10 +65,22 @@ export default function Page() {
             <td>Total Net:</td>
             <td className="kol">{formatCurrency((data.calcFromPairsResult as any).totalNet)}</td>
           </tr>
-          <tr>
-            <td></td>
-            <td></td>
-          </tr>
+          </tbody>
+      </table>
+      </div>
+      <div className="tabela w-50 mx-auto">
+        <table className="table table-bordered table-dark">
+        <thead className="thead-dark">
+        <tr>
+          <th scope="col" className="text-center">KATEGORIE</th>
+          <th scope="col" className="text-center">KWOTA</th>
+        </tr>
+        <tr>
+          <th scope="col">KOSZTY</th>
+          <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
           <tr>
             <td>Wydatki VAT:</td>
             <td className="kol">{formatCurrency((data.calcFromNegativePairsResult as any).totalVATNegative)}</td>
@@ -72,6 +95,7 @@ export default function Page() {
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

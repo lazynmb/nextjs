@@ -12,3 +12,7 @@ td:empty::before {
 td.kol {
     text-align: right;
 }
+
+table {
+  flex-wrap: wrap;
+}
