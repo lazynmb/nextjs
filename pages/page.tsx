@@ -15,7 +15,10 @@ export default function Page() {
   useEffect(() => {
     fetch('/api/calc')
       .then(response => response.json())
-      .then(data => setData(data))
+      .then(data => {
+        setData(data); // Ustaw stan
+        console.log(data); // Loguj dane
+      })
       .catch(error => console.error("Failed to fetch data:", error));
   }, []);
 
@@ -26,9 +29,13 @@ export default function Page() {
   return (
     <div>
       <h1>Data from calc.js:</h1>
-      <p>calcFromPairsResult - Total Net: {(data.calcFromPairsResult as any).totalNet}</p>
-      <p>calcFromPairsResult - Total VAT: {(data.calcFromPairsResult as any).totalVAT}</p>
-      <p>calcFromPairsResult - Total Brutto: {(data.calcFromPairsResult as any).totalBrutto}</p>
+      <p>Total Brutto: {(data.calcFromPairsResult as any).totalBrutto}</p>
+      <p>Total VAT: {(data.calcFromPairsResult as any).totalVAT}</p>
+      <p>Total Net: {(data.calcFromPairsResult as any).totalNet}</p>
+      <br></br>
+      <p>Wydatki brutto: {(data.calcFromNegativePairsResult as any).totalBruttoNegative}</p>
+      <p>Wydatki Vat: {(data.calcFromNegativePairsResult as any).totalVATNegative}</p>
+      <p>VAT do zaplacenia: {(data.calcFromNegativePairsResult as any).totalVATNettoNegative}</p>
     </div>
   );
 }
