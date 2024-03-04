@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import React from 'react';
+import '../styles/custom.css';
+
+
+
 
 interface DataType {
   calcFromPairsResult: number; // Replace 'any' with the actual type of calcFromPairsResult
   calcFromNegativePairsResult: number; // Replace 'any' with the actual type of calcFromNegativePairsResult
   categoriesResult: number; // Replace 'any' with the actual type of categoriesResult
+  totalIncome: number; // Replace 'any' with the actual type of totalIncome
 }
 
 
 
 
 export default function Page() {
-  const [data, setData] = useState({ calcFromPairsResult: null, calcFromNegativePairsResult: null, categoriesResult: null });
+  const [data, setData] = useState({ calcFromPairsResult: null, calcFromNegativePairsResult: null, categoriesResult: null, totalIncome: null });
+
+  function formatCurrency(value: any) {
+    return value ? `${value} zł` : '';
+  }
 
   useEffect(() => {
     fetch('/api/calc')
@@ -27,15 +38,40 @@ export default function Page() {
   }
 
   return (
-    <div>
-      <h1>Data from calc.js:</h1>
-      <p>Total Brutto: {(data.calcFromPairsResult as any).totalBrutto}</p>
-      <p>Total VAT: {(data.calcFromPairsResult as any).totalVAT}</p>
-      <p>Total Net: {(data.calcFromPairsResult as any).totalNet}</p>
-      <br></br>
-      <p>Wydatki brutto: {(data.calcFromNegativePairsResult as any).totalBruttoNegative}</p>
-      <p>Wydatki Vat: {(data.calcFromNegativePairsResult as any).totalVATNegative}</p>
-      <p>VAT do zaplacenia: {(data.calcFromNegativePairsResult as any).totalVATNettoNegative}</p>
+    <div className="container">
+      <h3 className="white">Data from calc.js:</h3>
+      <table className="table table-dark">
+        <tbody>
+          <tr>
+            <td>Total Brutto:</td>
+            <td className="kol">{formatCurrency((data.calcFromPairsResult as any).totalBrutto)}</td>
+          </tr>
+          <tr>
+            <td>Total VAT:</td>
+            <td className="kol">{formatCurrency((data.calcFromPairsResult as any).totalVAT)}</td>
+          </tr>
+          <tr>
+            <td>Total Net:</td>
+            <td className="kol">{formatCurrency((data.calcFromPairsResult as any).totalNet)}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Wydatki VAT:</td>
+            <td className="kol">{formatCurrency((data.calcFromNegativePairsResult as any).totalVATNegative)}</td>
+          </tr>
+          <tr>
+            <td>VAT do zapłacenia:</td>
+            <td className="kol">{formatCurrency((data.calcFromNegativePairsResult as any).totalVATNettoNegative)}</td>
+          </tr>
+          <tr>
+            <td>Zysk netto:</td>
+            <td className="kol">{formatCurrency((data.totalIncome as any).totalIncome)}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -1,0 +1,14 @@
+/* styles/custom.css */
+h1, h2, h3, h4, h5, h6 {
+    color: #e7e7e7;
+  }
+  
+td:empty::before {
+    content: '\00a0'; /* Dodaje niewidzialny znak, aby zapewnić wysokość */
+    display: inline-block;
+    min-height: 30; /* Ustaw minimalną wysokość */
+  }
+  
+td.kol {
+    text-align: right;
+}
