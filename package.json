@@ -16,7 +16,9 @@
     "@supabase/supabase-js": "^2.39.7",
     "bootstrap": "^5.3.3",
     "cheerio": "^1.0.0-rc.12",
+    "formidable": "^3.5.1",
     "next": "14.1.0",
+    "next-connect": "^1.0.0",
     "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18"

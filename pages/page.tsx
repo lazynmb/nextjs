@@ -17,9 +17,6 @@ interface DataType {
   totalExpensesCat: CategoryValues;
 }
 
-
-
-
 export default function Page() {
   const [data, setData] = useState({ 
     calcFromPairsResult: null, 
@@ -27,7 +24,32 @@ export default function Page() {
     categoriesResult: null, 
     totalIncome: null, 
     totalAllExp: {} as CategoryValues,
-    totalExpensesCat: {} as CategoryValues});
+    totalExpensesCat: {} as CategoryValues,
+  });
+
+  const [isTableExpanded, setIsTableExpanded] = useState(false);
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        console.log('Plik został przesłany.');
+        // Możesz tutaj dodać logikę aktualizacji stanu, jeśli jest to potrzebne
+      } else {
+        console.error('Błąd podczas przesyłania pliku.');
+      }
+    } catch (error) {
+      console.error('Wyjątek podczas przesyłania pliku:', error);
+    }
+  };
 
   function formatCurrency(value: any) {
     return value ? `${value} zł` : '';
@@ -127,6 +149,11 @@ export default function Page() {
         </tbody>
       </table>
       </div>
+      <div>
+      <button onClick={() => setIsTableExpanded(!isTableExpanded)}>
+        {isTableExpanded ? 'Zwiń tabelę' : 'Rozwiń tabelę'}
+      </button>
+      {isTableExpanded && (
       <div className="kategorie-detail">
         <table className="table table-hover table-striped table-bordered table-dark kategorie-table">
           <thead>
@@ -152,6 +179,11 @@ export default function Page() {
           </tbody>
       </table>
       </div>
+      )}
+      </div>
+      <div>
+      <input type="file" onChange={handleFileUpload} />
     </div>
-  );
-}
+    </div>
+    );
+  }

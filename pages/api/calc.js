@@ -3,6 +3,8 @@ import fs from 'fs';
 import path, { parse } from 'path';
 import cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
+import nextConnect from 'next-connect';
+import { IncomingForm } from 'formidable';
 
 // Supabase client initialization
 const supabase = createClient('https://vzirtldrmuzpurjjcsrf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aXJ0bGRybXV6cHVyampjc3JmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTcyODUwNywiZXhwIjoyMDExMzA0NTA3fQ.sQmREUFOAqP5tclU1Uc3pGJtjYl3i7uQmgB82TSIXLI');
@@ -154,7 +156,6 @@ let allExp = {
   return allExp;
 }
 
-
 function sumExpensesByCategory(allExp) {
     let totalExpensesSum = {};
   
@@ -174,6 +175,16 @@ function sumExpensesByCategory(allExp) {
   
     return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
   }
+
+
+
+  export const config = {
+    api: {
+      bodyParser: false, // Wyłączenie domyślnego parsowania body przez Next.js
+    },
+  };
+  
+
 
 
 
@@ -201,5 +212,31 @@ export default async function handler(req, res) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    
+    const newOne = nextConnect()
+      .post((req, res) => {
+        const form = new IncomingForm({ uploadDir: "./uploads", keepExtensions: true });
+        form.parse(req, (err, fields, files) => {
+        if (err) {
+            res.status(500).json({ error: "Błąd podczas przetwarzania pliku." });
+            return;
+        }
+        // Tutaj możesz dodać logikę, np. zapisanie informacji o pliku w bazie danych
+        
+        // Przykład przeniesienia pliku do docelowego folderu
+        const oldPath = files.file.filepath;
+        const newPath = path.join(process.cwd(), 'uploads', files.file.originalFilename);
+
+        fs.rename(oldPath, newPath, (err) => {
+            if (err) {
+            res.status(500).json({ error: "Błąd podczas zapisywania pliku." });
+            return;
+            }
+            res.status(200).json({ message: "Plik został przesłany pomyślnie." });
+      });
+    });
+});
+    
+
 }
 
