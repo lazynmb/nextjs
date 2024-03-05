@@ -1,18 +1,39 @@
-/* styles/custom.css */
+
+
 h1, h2, h3, h4, h5, h6 {
     color: #e7e7e7;
-  }
+  };
   
+
 td:empty::before {
-    content: '\00a0'; /* Dodaje niewidzialny znak, aby zapewnić wysokość */
-    display: inline-block;
-    min-height: 30; /* Ustaw minimalną wysokość */
-  }
-  
-td.kol {
-    text-align: right;
+  content: '\00a0';
+  display: inline-block;
+  min-height: 30; 
 }
 
-table {
-  flex-wrap: wrap;
+
+.container {  
+  display: grid;
+  margin-top: 2%;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0px 20px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "przychody koszty kategorie-suma kategorie-detail"
+    "przychody koszty kategorie-suma kategorie-detail"
+    ". . . kategorie-detail"
+    ". . . kategorie-detail"
+    ". . . kategorie-detail"
+    ". . . kategorie-detail"
+    ". . . kategorie-detail";
 }
+
+.przychody { grid-area: przychody; };
+
+.koszty { grid-area: koszty; };
+
+.kategorie-suma { grid-area: kategorie-suma; };
+
+.kategorie-detail { grid-area: kategorie-detail; };
+

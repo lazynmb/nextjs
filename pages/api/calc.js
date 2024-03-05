@@ -1,6 +1,6 @@
 // pages/api/calc.js
 import fs from 'fs';
-import path from 'path';
+import path, { parse } from 'path';
 import cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
 
@@ -140,18 +140,42 @@ function categories(filePath){
         } else if (wyplatyStrings.some(str => col2.includes(str)) && col5AsFloat <= 0) {
             wyplaty.push(col5AsFloat);
         }
-
-
-
 })
 
-    let allExp = [bramka, zaplaconyVat, dochodowy, subskrypcje, czynsze, uslugi, wyplaty]    
-    return allExp;
+let allExp = {
+    bramka,
+    zaplaconyVat,
+    dochodowy,
+    subskrypcje,
+    czynsze,
+    uslugi,
+    wyplaty
+  };
+  return allExp;
 }
 
 
-// Funkcje parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, categories muszą być zdefiniowane
-// lub zaimportowane wcześniej w tym pliku.
+function sumExpensesByCategory(allExp) {
+    let totalExpensesSum = {};
+  
+    // Iteracja przez kategorie w obiekcie allExp
+    for (let category in allExp) {
+      let categoryTotal = 0; // Suma dla bieżącej kategorii
+  
+      // Iteracja przez wydatki w danej kategorii
+      for (let i = 0; i < allExp[category].length; i++) {
+        const expense = allExp[category][i];
+        expense.toFixed(2);
+        categoryTotal += expense; // Dodawanie wartości wydatku do sumy kategorii
+        parseFloat(categoryTotal);
+    }
+      totalExpensesSum[category] = categoryTotal.toFixed(2);
+    }
+  
+    return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
+  }
+
+
 
 export default async function handler(req, res) {
     try {
@@ -168,9 +192,11 @@ export default async function handler(req, res) {
         const calcFromNegativePairsResult = calcFromNegativePairs(negativePairs, positivePairs);
         const categoriesResults = categories(filePath);
         const totalIncome = countIncome(calcFromPairsResult.totalNet, calcFromNegativePairsResult.totalNewNettoNegative);
+        const totalAllExp = categories(filePath);
+        const totalExpensesCat = sumExpensesByCategory(totalAllExp);
 
         // Zwróć wyniki jako JSON
-        res.status(200).json({ calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome });
+        res.status(200).json({ totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
