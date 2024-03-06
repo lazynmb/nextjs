@@ -213,29 +213,7 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
     
-    const newOne = nextConnect()
-      .post((req, res) => {
-        const form = new IncomingForm({ uploadDir: "./uploads", keepExtensions: true });
-        form.parse(req, (err, fields, files) => {
-        if (err) {
-            res.status(500).json({ error: "Błąd podczas przetwarzania pliku." });
-            return;
-        }
-        // Tutaj możesz dodać logikę, np. zapisanie informacji o pliku w bazie danych
-        
-        // Przykład przeniesienia pliku do docelowego folderu
-        const oldPath = files.file.filepath;
-        const newPath = path.join(process.cwd(), 'uploads', files.file.originalFilename);
-
-        fs.rename(oldPath, newPath, (err) => {
-            if (err) {
-            res.status(500).json({ error: "Błąd podczas zapisywania pliku." });
-            return;
-            }
-            res.status(200).json({ message: "Plik został przesłany pomyślnie." });
-      });
-    });
-});
+    
     
 
 }

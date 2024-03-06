@@ -29,25 +29,29 @@ export default function Page() {
 
   const [isTableExpanded, setIsTableExpanded] = useState(false);
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        console.log('Plik został przesłany.');
-        // Możesz tutaj dodać logikę aktualizacji stanu, jeśli jest to potrzebne
-      } else {
-        console.error('Błąd podczas przesyłania pliku.');
+  const handleFileUpload = async (event:React.ChangeEvent<HTMLInputElement> ) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0]; // Teraz 'file' jest poprawnie zdefiniowane
+  
+      const formData = new FormData();
+      formData.append('file', file);
+  
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+  
+        if (response.ok) {
+          console.log('Plik został przesłany.');
+        } else {
+          console.error('Błąd podczas przesyłania pliku.');
+        }
+      } catch (error) {
+        console.error('Wyjątek podczas przesyłania pliku:', error);
       }
-    } catch (error) {
-      console.error('Wyjątek podczas przesyłania pliku:', error);
+    } else {
+      console.log('Nie wybrano pliku.');
     }
   };
 
