@@ -176,9 +176,51 @@ function sumExpensesByCategory(allExp) {
     return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
   }
 
+async function processDocuments(directoryPath) {
+    const files = fs.readdirSync(directoryPath);
+
+    files.forEach(file => {
+        const filePath = path.join(directoryPath, file);
+        // Sprawdź, czy ścieżka jest plikiem
+        if (fs.statSync(filePath).isFile()) {
+            const htmlContent = fs.readFileSync(filePath, 'utf8');
+            const $ = cheerio.load(htmlContent);
+            const text = $('td > font').text();
 
 
-  export const config = {
+            const regex = /za okres od (\d{4}-\d{2}-\d{2}) do (\d{4}-\d{2}-\d{2})/;
+            const matches = regex.exec(text);
+            console.log(matches[1], matches[2]);
+    
+        
+
+            if (matches[1] && matches[2]) {
+                const startDate = new Date(matches[1]);
+                console.log(startDate);
+                const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1);
+                console.log(endDate);
+
+            if (matches[1] === startDate.toISOString().split('T')[0] && 
+                text.includes(endDate.toISOString().split('T')[0])) {
+                const newFileName = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}.html`;
+                const newDirectoryPath = path.join(directoryPath, 'miesiace');
+                if (!fs.existsSync(newDirectoryPath)) {
+                    fs.mkdirSync(newDirectoryPath);
+                }
+                const newFilePath = path.join(newDirectoryPath, newFileName);
+                if (!fs.existsSync(newFilePath)) {
+                    fs.copyFileSync(filePath, newFilePath);
+                    console.log(`Przeniesiono plik ${file} do katalogu miesiace jako ${newFileName}`);
+                } else {
+                    console.log(`Plik ${newFileName} już istnieje w katalogu miesiace. Pomijam.`);
+                }
+            }
+        }}
+    });
+}
+
+
+export const config = {
     api: {
       bodyParser: false, // Wyłączenie domyślnego parsowania body przez Next.js
     },
@@ -205,9 +247,10 @@ export default async function handler(req, res) {
         const totalIncome = countIncome(calcFromPairsResult.totalNet, calcFromNegativePairsResult.totalNewNettoNegative);
         const totalAllExp = categories(filePath);
         const totalExpensesCat = sumExpensesByCategory(totalAllExp);
+        const processDocumentsResult = processDocuments(directoryPath);
 
         // Zwróć wyniki jako JSON
-        res.status(200).json({ totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
+        res.status(200).json({ processDocumentsResult, totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });

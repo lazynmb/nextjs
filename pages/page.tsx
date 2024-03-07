@@ -74,7 +74,9 @@ export default function Page() {
   }
 
   return (
-    <div className="container">
+    
+    <div>
+      <div className="container">
       <div className="przychody">
         <table className="table table-hover table-striped table-bordered table-dark abc">
           <thead className="thead-dark ">
@@ -185,7 +187,9 @@ export default function Page() {
       </div>
       )}
       </div>
-      <div>
+
+    </div>
+    <div>
       <input type="file" onChange={handleFileUpload} />
     </div>
     </div>
