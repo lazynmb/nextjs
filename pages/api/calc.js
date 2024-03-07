@@ -187,18 +187,12 @@ async function processDocuments(directoryPath) {
             const $ = cheerio.load(htmlContent);
             const text = $('td > font').text();
 
-
             const regex = /za okres od (\d{4}-\d{2}-\d{2}) do (\d{4}-\d{2}-\d{2})/;
             const matches = regex.exec(text);
-            console.log(matches[1], matches[2]);
-    
-        
 
             if (matches[1] && matches[2]) {
                 const startDate = new Date(matches[1]);
-                console.log(startDate);
                 const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1);
-                console.log(endDate);
 
             if (matches[1] === startDate.toISOString().split('T')[0] && 
                 text.includes(endDate.toISOString().split('T')[0])) {
@@ -209,9 +203,11 @@ async function processDocuments(directoryPath) {
                 }
                 const newFilePath = path.join(newDirectoryPath, newFileName);
                 if (!fs.existsSync(newFilePath)) {
-                    fs.copyFileSync(filePath, newFilePath);
+                    fs.copyFileSync(filePath, newFilePath)
+                    fs.unlinkSync(filePath);
                     console.log(`Przeniesiono plik ${file} do katalogu miesiace jako ${newFileName}`);
                 } else {
+                    fs.unlinkSync(filePath);
                     console.log(`Plik ${newFileName} już istnieje w katalogu miesiace. Pomijam.`);
                 }
             }

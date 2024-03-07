@@ -1,6 +1,6 @@
 
 
-h1, h2, h3, h4, h5, h6 {
+/* h1, h2, h3, h4, h5, h6 {
     color: #e7e7e7;
   };
   
@@ -8,32 +8,49 @@ h1, h2, h3, h4, h5, h6 {
 td:empty::before {
   content: '\00a0';
   display: inline-block;
-  min-height: 30; 
-}
+  min-height: 30px; 
+} */
 
+.header {
+  margin-left: 15%;
+  margin-right: 15%;
+}
 
 .container {  
   display: grid;
-  margin-top: 2%;
+  margin-top: 4%;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
   gap: 0px 20px;
   grid-auto-flow: row;
+  overflow: hidden;
   grid-template-areas:
-    "przychody koszty kategorie-suma kategorie-detail"
-    "przychody koszty kategorie-suma kategorie-detail"
-    ". . . kategorie-detail"
-    ". . . kategorie-detail"
-    ". . . kategorie-detail"
-    ". . . kategorie-detail"
-    ". . . kategorie-detail";
+    "przychody koszty kategorie-suma kategorie-detail";
 }
 
-.przychody { grid-area: przychody; };
+.przychody { grid-area: przychody; }
 
-.koszty { grid-area: koszty; };
+.koszty { grid-area: koszty; }
 
-.kategorie-suma { grid-area: kategorie-suma; };
+.kategorie-suma { grid-area: kategorie-suma; }
 
-.kategorie-detail { grid-area: kategorie-detail; };
+.kategorie-detail { 
+  grid-area: kategorie-detail;
+  max-height: 400px;
+  overflow: auto; 
+}
 
+.loadButton {  
+  margin: 2%;
+  margin-right: 6%;
+  position: absolute; /* This positions the element absolutely within its closest positioned ancestor */
+  top: 0; /* Aligns the top edge of the element with the top of the container */
+  right: 0; /* Aligns the right edge of the element with the right of the container */
+}
+
+.title {
+  color: #e7e7e7;
+  font-size: 1.5em;
+  margin: 2%;
+  margin-bottom: 0;
+}
