@@ -189,6 +189,18 @@ async function processDocuments(directoryPath) {
 
             const regex = /za okres od (\d{4}-\d{2}-\d{2}) do (\d{4}-\d{2}-\d{2})/;
             const matches = regex.exec(text);
+            if (matches[1] && matches[2]) {
+                // Przygotowanie tekstu na nazwę pliku (zastąpienie lub usunięcie niedozwolonych znaków)
+                const safeFileName1 = matches[1].replace(/[\/\\?%*:|"<>]/g, '_');
+                const safeFileName2 = matches[2].replace(/[\/\\?%*:|"<>]/g, '_') + '.html';
+                const fullFileName = safeFileName1 + ' - ' + safeFileName2;
+                
+                const newFilePath = path.join(directoryPath, fullFileName);
+
+                // Zmiana nazwy pliku
+                fs.renameSync(filePath, newFilePath);
+                console.log(`Zmieniono nazwę pliku na: ${newFilePath}`);
+            }
 
             if (matches[1] && matches[2]) {
                 const startDate = new Date(matches[1]);
@@ -246,7 +258,7 @@ export default async function handler(req, res) {
         const processDocumentsResult = processDocuments(directoryPath);
 
         // Zwróć wyniki jako JSON
-        res.status(200).json({ processDocumentsResult, totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
+        res.status(200).json({ latestFile, processDocumentsResult, totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -15,6 +15,7 @@ interface DataType {
   totalIncome: number; 
   totalAllExp: CategoryValues; 
   totalExpensesCat: CategoryValues;
+  latestFile: string | null;
 }
 
 export default function Page() {
@@ -25,6 +26,7 @@ export default function Page() {
     totalIncome: null, 
     totalAllExp: {} as CategoryValues,
     totalExpensesCat: {} as CategoryValues,
+    latestFile: null,
   });
 
   const [isTableExpanded, setIsTableExpanded] = useState(false);
@@ -76,22 +78,13 @@ export default function Page() {
   return (
     
     <div className="containerMain">
-      <div className="header">
-        <div className="title">
-          <h1>Witaj w aplikacji do obliczania podatków!</h1>
-        </div>
-        <div className="loadButton">
-          <input type="file" onChange={handleFileUpload} />
-        </div>
-      </div>
       <div className="container">
+        <div className="title">
+          <h3>Najnowszy plik: {data.latestFile}</h3>
+        </div>
         <div className="przychody">
           <table className="table table-hover table-striped table-bordered table-dark abc">
             <thead className="thead-dark ">
-              <tr>
-                <th scope="col" className="text-center">KATEGORIE</th>
-                <th scope="col" className="text-center">KWOTA</th>
-              </tr>
               <tr>
                 <th scope="col">ZYSKI</th>
                 <th scope="col"></th>
@@ -116,10 +109,6 @@ export default function Page() {
         <div className="koszty">
           <table className="table table-hover table-striped table-bordered table-dark wydatki-table">
             <thead className="thead-dark">
-            <tr>
-              <th>KATEGORIE</th>
-              <th>KWOTA</th>
-            </tr>
             <tr>
               <th scope="col">KOSZTY</th>
               <th scope="col"></th>
@@ -187,6 +176,11 @@ export default function Page() {
               ))}
             </tbody>
         </table>
+        </div>
+      </div>
+      <div className="container2">
+        <div className="loadButton">
+          <input type="file" onChange={handleFileUpload} />
         </div>
       </div>
     </div>
