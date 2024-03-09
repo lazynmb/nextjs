@@ -62,10 +62,26 @@ export default function Page() {
   }
 
   useEffect(() => {
-    fetch('/api/calc')
-      .then(response => response.json())
+    // Najpierw wykonaj przetwarzanie danych
+    fetch('/api/processData')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Błąd podczas przetwarzania danych');
+        }
+        return response.json(); // Tutaj możesz oczekiwać, że processData zwróci potwierdzenie, że procesowanie się zakończyło
+      })
+      .then(() => {
+        // Po przetworzeniu danych, pobierz je z /api/calc
+        return fetch('/api/calc');
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Błąd podczas pobierania danych');
+        }
+        return response.json();
+      })
       .then(data => {
-        setData(data); // Ustaw stan
+        setData(data); // Ustaw stan danymi z /api/calc
         console.log(data); // Loguj dane
       })
       .catch(error => console.error("Failed to fetch data:", error));

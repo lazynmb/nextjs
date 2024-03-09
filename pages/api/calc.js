@@ -9,7 +9,7 @@ import { IncomingForm } from 'formidable';
 // Supabase client initialization
 const supabase = createClient('https://vzirtldrmuzpurjjcsrf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aXJ0bGRybXV6cHVyampjc3JmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5NTcyODUwNywiZXhwIjoyMDExMzA0NTA3fQ.sQmREUFOAqP5tclU1Uc3pGJtjYl3i7uQmgB82TSIXLI');
 
-function findLatestHtmlFile(dirPath) {
+export function findLatestHtmlFile(dirPath) {
     const files = fs.readdirSync(dirPath).filter(file => file.endsWith('.html'));
     const sortedByDate = files.map(filename => ({
         name: filename,
@@ -19,7 +19,7 @@ function findLatestHtmlFile(dirPath) {
     return sortedByDate.length ? sortedByDate[0].name : null;
 }
 
-function calcFromPairs(positivePairs) {
+export function calcFromPairs(positivePairs) {
     let totalNet = 0;
     let totalVAT = 0;
     let totalBrutto = 0;
@@ -41,7 +41,7 @@ function calcFromPairs(positivePairs) {
     };
 }
 
-function calcFromNegativePairs(negativePairs, positivePairs) {
+export function calcFromNegativePairs(negativePairs, positivePairs) {
     let totalVATNegative = 0;
     let totalBruttoNegative = 0;
     let totalNettoNegative = 0;
@@ -69,7 +69,7 @@ function calcFromNegativePairs(negativePairs, positivePairs) {
     };
 }
 
-function countIncome(totalNetto, totalNettoNegative){
+export function countIncome(totalNetto, totalNettoNegative){
     // Konwersja ciągów znaków na liczby zmiennoprzecinkowe
     let totalNettoNum = parseFloat(totalNetto);
     let totalNettoNegativeNum = parseFloat(totalNettoNegative);
@@ -79,7 +79,7 @@ function countIncome(totalNetto, totalNettoNegative){
     return {totalIncome: totalIncome.toFixed(2)};
 }
 
-function parseHtmlAndExtractData(filePath) {
+export function parseHtmlAndExtractData(filePath) {
     const data = fs.readFileSync(filePath, 'utf8');
     const $ = cheerio.load(data);
     let pairs = [];
@@ -104,7 +104,7 @@ function parseHtmlAndExtractData(filePath) {
     return { positivePairs: pairs, negativePairs: negPairs };
 }
 
-function categories(filePath){
+export function categories(filePath){
     const data = fs.readFileSync(filePath, 'utf8');
     const $ = cheerio.load(data);
 
@@ -156,7 +156,7 @@ let allExp = {
   return allExp;
 }
 
-function sumExpensesByCategory(allExp) {
+export function sumExpensesByCategory(allExp) {
     let totalExpensesSum = {};
   
     // Iteracja przez kategorie w obiekcie allExp

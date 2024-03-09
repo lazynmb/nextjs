@@ -20,3 +20,20 @@ model User {
   password String
 
 }
+
+model Result {
+  id                  Int       @id @default(autoincrement())
+  calcFromPairsResult Float
+  calcFromNegativePairsResult Float
+  categoriesResult    Json
+  totalIncome         Float
+  // Załóżmy, że totalExpensesCat to JSON
+  totalExpensesCat    Json
+  createdAt           DateTime  @default(now())
+}
+
+model ProcessedFile {
+  id        Int      @id @default(autoincrement())
+  fileName  String   @unique
+  processedAt DateTime @default(now())
+}
