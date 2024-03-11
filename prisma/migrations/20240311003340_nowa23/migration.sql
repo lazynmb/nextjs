@@ -1,9 +1,10 @@
 -- CreateTable
 CREATE TABLE "Result" (
     "id" SERIAL NOT NULL,
+    "fileName" TEXT NOT NULL,
     "calcFromPairsResult" DOUBLE PRECISION NOT NULL,
     "calcFromNegativePairsResult" DOUBLE PRECISION NOT NULL,
-    "categoriesResult" DOUBLE PRECISION NOT NULL,
+    "categoriesResult" JSONB NOT NULL,
     "totalIncome" DOUBLE PRECISION NOT NULL,
     "totalExpensesCat" JSONB NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

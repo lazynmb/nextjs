@@ -18,6 +18,78 @@ interface DataType {
   latestFile: string | null;
 }
 
+function DataViewer() {
+  const [fileNames, setFileNames] = useState([]);
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [fileDetails, setFileDetails] = useState(null);
+
+  // Pobierz nazwy plików przy inicjalizacji komponentu
+  useEffect(() => {
+    async function fetchFileNames() {
+      const response = await fetch('/api/getMonths');
+      const results = await response.json();
+      setFileNames(results.map(result => result.fileName));
+    }
+  
+    fetchFileNames();
+  }, []);
+
+  // Handler dla zmiany wybranego pliku
+  const handleFileChange = async (selectedFileName) => {
+    setSelectedFileName(selectedFileName);
+    const response = await fetch(`/api/getDataForMonths?fileName=${encodeURIComponent(selectedFileName)}`);
+    if (!response.ok) {
+      // Obsłuż błąd, jeśli wystąpił
+      console.error('Failed to fetch data');
+      return;
+    }
+    const details = await response.json();
+    setFileDetails(details);
+    console.log(response, details)
+  };
+
+  return (
+    <div>
+      <select onChange={(e) => handleFileChange(e.target.value)} value={selectedFileName}>
+        <option value="">Wybierz plik</option>
+        {fileNames.map((fileName, index) => (
+          <option key={index} value={fileName}>
+            {fileName}
+          </option>
+        ))}
+      </select>
+
+      {fileDetails && (
+  <table>
+    <thead>
+      <tr>
+        <th>Właściwość</th>
+        <th>Wartość</th>
+      </tr>
+    </thead>
+    <tbody>
+      {Object.entries(fileDetails).map(([key, value]) => {
+        // Można tutaj dodać logikę przekształcającą klucze na bardziej czytelne nazwy
+        // oraz obsłużyć specjalne przypadki, np. gdy wartość jest obiektem lub tablicą
+        let displayValue = value;
+        if (typeof value === 'object' && value !== null) {
+          displayValue = JSON.stringify(value, null, 2); // Dla obiektów/tablic używamy JSON.stringify do wyświetlenia
+        }
+
+        return (
+          <tr key={key}>
+            <td>{key}</td> {/* Tutaj mogłaby być zamieniona nazwa klucza na bardziej czytelną */}
+            <td style={{whiteSpace: 'pre-wrap'}}>{displayValue}</td> {/* Pre-wrap pozwala na formatowanie JSONa */}
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+)}
+    </div>
+  );
+}
+
 export default function Page() {
   const [data, setData] = useState({ 
     calcFromPairsResult: null, 
@@ -87,6 +159,8 @@ export default function Page() {
       .catch(error => console.error("Failed to fetch data:", error));
   }, []);
 
+
+  
   if (!data.calcFromPairsResult) {
     return <p>Loading...</p>;
   }
@@ -195,6 +269,7 @@ export default function Page() {
         </div>
       </div>
       <div className="container2">
+      <DataViewer />
         <div className="loadButton">
           <input type="file" onChange={handleFileUpload} />
         </div>
@@ -203,3 +278,5 @@ export default function Page() {
     
     );
   }
+
+  

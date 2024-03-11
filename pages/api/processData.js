@@ -31,9 +31,11 @@ export default async function handler(req, res) {
             const totalIncome = countIncome(calcFromPairsResult.totalNet, calcFromNegativePairsResult.totalNewNettoNegative);
             const totalAllExp = categories(filePath);
             const totalExpensesCat = sumExpensesByCategory(totalAllExp);
+            const fileName = file;
     
             // Zapisz wyniki do bazy danych (upewnij się, że masz odpowiednie funkcje/metody do obsługi tego)
             await saveToDatabase({
+                fileName,
                 calcFromPairsResult,
                 calcFromNegativePairsResult,
                 categoriesResults,

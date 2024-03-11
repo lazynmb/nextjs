@@ -10,7 +10,14 @@ td:empty::before {
   display: inline-block;
   min-height: 30px; 
 } */
+body {
+  background-color: #2C2F33;
+  color: #e7e7e7;
+  font-size: 1em;
+  margin: 0;
+  padding: 0;
 
+}
 .header {
   margin-left: 15%;
   margin-right: 15%;
