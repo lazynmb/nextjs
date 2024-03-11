@@ -18,10 +18,34 @@ interface DataType {
   latestFile: string | null;
 }
 
+interface FileDetails {
+  calcFromPairsResult: {
+    totalNet: number;
+    totalVAT: number;
+    totalBrutto: number;
+  };
+  calcFromNegativePairsResult: {
+    totalBruttoNegative: number;
+    totalNewNettoNegative: number;
+    totalVATNegative: number;
+    totalVATNettoNegative: number;
+    
+  };
+  totalIncome: {
+    totalIncome: number;
+  };
+
+  totalExpensesCat: {
+    [category: string]: string; // Zakładając, że każda kategoria to string z wartością
+  };
+  // Zdefiniuj resztę potrzebnych pól...
+}
+
+
 function DataViewer() {
   const [fileNames, setFileNames] = useState([]);
   const [selectedFileName, setSelectedFileName] = useState('');
-  const [fileDetails, setFileDetails] = useState(null);
+  const [fileDetails, setFileDetails] = useState<FileDetails | null>(null);
 
   // Pobierz nazwy plików przy inicjalizacji komponentu
   useEffect(() => {
@@ -32,25 +56,31 @@ function DataViewer() {
         return;
       }
       const results = await response.json();
-      setFileNames(results.map(result => result.fileName));
+      setFileNames(results.map((result: Record<string, unknown>) => result.fileName));
     }
     fetchFileNames();
   }, []);
 
   // Handler dla zmiany wybranego pliku
-  const handleFileChange = async (selectedFileName) => {
+  const handleFileChange = async (selectedFileName: string) => {
     setSelectedFileName(selectedFileName);
     const response = await fetch(`/api/getDataForMonths?fileName=${encodeURIComponent(selectedFileName)}`);
     if (!response.ok) {
       console.error('Failed to fetch file details');
       return;
     }
-    const details = await response.json();
-    setFileDetails(details);
-    console.log(response, details)
+    const detailsArray = await response.json();
+    if (detailsArray && detailsArray.length > 0) {
+      const details = detailsArray[0]; // Pobieramy pierwszy element z tablicy
+      setFileDetails(details);
+      console.log(details); // Logowanie szczegółów w konsoli
+    } else {
+      console.error("No details found for the file");
+      setFileDetails(null);
+    }
   };
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     return value ? `${value} zł` : '';
   };
 
@@ -66,32 +96,82 @@ function DataViewer() {
       </select>
 
       {fileDetails && (
-        <div className="przychody">
-          <table className="table table-hover table-striped table-bordered table-dark abc">
-            <thead className="thead-dark ">
+        <React.Fragment>
+        <div className='container-miesiace'>
+          <div className="przychody">
+            <table className="table table-hover table-striped table-bordered table-dark abc">
+              <thead className="thead-dark ">
+                <tr>
+                  <th scope="col">ZYSKI</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Przykład danych, które mogą być wyświetlane */}
+                <tr>
+                  <td>Total Brutto:</td>
+                  <td className="kol">{formatCurrency(fileDetails.calcFromPairsResult?.totalBrutto)}</td>
+                </tr>
+                <tr>
+                  <td>Total VAT:</td>
+                  <td className="kol">{formatCurrency(fileDetails.calcFromPairsResult?.totalVAT)}</td>
+                </tr>
+                <tr>
+                  <td>Total Net:</td>
+                  <td className="kol">{formatCurrency(fileDetails.calcFromPairsResult?.totalNet)}</td>
+                </tr>
+                {/* Możesz dodać więcej wierszy tabeli na podstawie struktury twoich danych */}
+              </tbody>
+            </table>
+          </div>
+          <div className="koszty">
+                  <table className="table table-hover table-striped table-bordered table-dark wydatki-table">
+                    <thead className="thead-dark">
+                    <tr>
+                      <th scope="col">KOSZTY</th>
+                      <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Wydatki VAT:</td>
+                        <td className="kol">{formatCurrency(fileDetails.calcFromNegativePairsResult?.totalVATNegative)}</td>
+                      </tr>
+                      <tr>
+                        <td>VAT do zapłacenia:</td>
+                        <td className="kol">{formatCurrency(fileDetails.calcFromNegativePairsResult?.totalVATNettoNegative)}</td>
+                      </tr>
+                      <tr>
+                        <td>Zysk netto:</td>
+                        <td className="kol">{formatCurrency(fileDetails.totalIncome?.totalIncome)}</td>
+                      </tr>
+                    </tbody>
+                </table>
+          </div>
+          <div className="kategorie-suma">
+          <table className="table table-hover table-striped table-bordered table-dark kategorie-table">
+            <thead>
               <tr>
-                <th scope="col">ZYSKI</th>
-                <th scope="col"></th>
+                <th className="lewa-kolumna">KATEGORIE</th>
+                <th className="prawa-kolumna">KWOTA</th>
               </tr>
             </thead>
             <tbody>
-              {/* Przykład danych, które mogą być wyświetlane */}
-              <tr>
-                <td>Total Brutto:</td>
-                <td className="kol">{formatCurrency(fileDetails.calcFromPairsResult)}</td>
-              </tr>
-              <tr>
-                <td>Total VAT:</td>
-                <td className="kol">{formatCurrency(fileDetails.calcFromNegativePairsResult)}</td>
-              </tr>
-              <tr>
-                <td>Total Net:</td>
-                <td className="kol">{formatCurrency(fileDetails.totalIncome)}</td>
-              </tr>
-              {/* Możesz dodać więcej wierszy tabeli na podstawie struktury twoich danych */}
+            {Object.entries(fileDetails.totalExpensesCat).map(([categoryName, values]) => (
+                <React.Fragment key={categoryName}>
+                  {(Array.isArray(values) ? values : [values]).map((value, valueIndex) => (
+                    <tr key={`${categoryName}-${valueIndex}`}>
+                      <td className="category-column">{categoryName}</td>
+                      <td className="value-column">{formatCurrency(value)}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
+          </div>
         </div>
+        </React.Fragment>
       )}
     </div>
   );

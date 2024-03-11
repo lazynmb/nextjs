@@ -44,6 +44,22 @@ body {
     "przychody koszty kategorie-suma kategorie-detail";
 }
 
+.container-miesiace {  
+  display: grid;
+  border: 0.1rem solid #42474C;
+  border-radius: 10px;  
+  padding: 1rem;
+  margin-top: 1em;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 0px 20px;
+  grid-auto-flow: row;
+  overflow: hidden;
+  grid-template-areas:
+    "header header header header"
+    "przychody koszty kategorie-suma kategorie-detail";
+}
+
 .przychody { grid-area: przychody; }
 
 .koszty { grid-area: koszty; }
