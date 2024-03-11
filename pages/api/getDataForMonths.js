@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 export default async function handler(req, res) {
   // Odczytaj fileName z query
   const { fileName } = req.query;
-  console.error(fileName);
 
   try {
     const data = await prisma.result.findMany({

@@ -27,10 +27,13 @@ function DataViewer() {
   useEffect(() => {
     async function fetchFileNames() {
       const response = await fetch('/api/getMonths');
+      if (!response.ok) {
+        console.error('Failed to fetch file names');
+        return;
+      }
       const results = await response.json();
       setFileNames(results.map(result => result.fileName));
     }
-  
     fetchFileNames();
   }, []);
 
@@ -39,13 +42,16 @@ function DataViewer() {
     setSelectedFileName(selectedFileName);
     const response = await fetch(`/api/getDataForMonths?fileName=${encodeURIComponent(selectedFileName)}`);
     if (!response.ok) {
-      // Obsłuż błąd, jeśli wystąpił
-      console.error('Failed to fetch data');
+      console.error('Failed to fetch file details');
       return;
     }
     const details = await response.json();
     setFileDetails(details);
     console.log(response, details)
+  };
+
+  const formatCurrency = (value) => {
+    return value ? `${value} zł` : '';
   };
 
   return (
@@ -60,35 +66,37 @@ function DataViewer() {
       </select>
 
       {fileDetails && (
-  <table>
-    <thead>
-      <tr>
-        <th>Właściwość</th>
-        <th>Wartość</th>
-      </tr>
-    </thead>
-    <tbody>
-      {Object.entries(fileDetails).map(([key, value]) => {
-        // Można tutaj dodać logikę przekształcającą klucze na bardziej czytelne nazwy
-        // oraz obsłużyć specjalne przypadki, np. gdy wartość jest obiektem lub tablicą
-        let displayValue = value;
-        if (typeof value === 'object' && value !== null) {
-          displayValue = JSON.stringify(value, null, 2); // Dla obiektów/tablic używamy JSON.stringify do wyświetlenia
-        }
-
-        return (
-          <tr key={key}>
-            <td>{key}</td> {/* Tutaj mogłaby być zamieniona nazwa klucza na bardziej czytelną */}
-            <td style={{whiteSpace: 'pre-wrap'}}>{displayValue}</td> {/* Pre-wrap pozwala na formatowanie JSONa */}
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-)}
+        <div className="przychody">
+          <table className="table table-hover table-striped table-bordered table-dark abc">
+            <thead className="thead-dark ">
+              <tr>
+                <th scope="col">ZYSKI</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Przykład danych, które mogą być wyświetlane */}
+              <tr>
+                <td>Total Brutto:</td>
+                <td className="kol">{formatCurrency(fileDetails.calcFromPairsResult)}</td>
+              </tr>
+              <tr>
+                <td>Total VAT:</td>
+                <td className="kol">{formatCurrency(fileDetails.calcFromNegativePairsResult)}</td>
+              </tr>
+              <tr>
+                <td>Total Net:</td>
+                <td className="kol">{formatCurrency(fileDetails.totalIncome)}</td>
+              </tr>
+              {/* Możesz dodać więcej wierszy tabeli na podstawie struktury twoich danych */}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
+
 
 export default function Page() {
   const [data, setData] = useState({ 

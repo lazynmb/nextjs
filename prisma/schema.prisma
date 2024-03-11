@@ -22,12 +22,11 @@ model User {
 }
 
 model Result {
-  id                  Int       @id @default(autoincrement())
   fileName            String   @unique
-  calcFromPairsResult Float
-  calcFromNegativePairsResult Float
+  calcFromPairsResult Json
+  calcFromNegativePairsResult Json
   categoriesResult    Json
-  totalIncome         Float
+  totalIncome         Json
   // Załóżmy, że totalExpensesCat to JSON
   totalExpensesCat    Json
   createdAt           DateTime  @default(now())

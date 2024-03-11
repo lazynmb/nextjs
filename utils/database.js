@@ -9,10 +9,10 @@ export async function saveToDatabase(data) {
   await prisma.result.create({
     data: {
       fileName: fileNameWithoutHtml,
-      calcFromPairsResult: parseFloat(data.calcFromPairsResult.totalNet),
-      calcFromNegativePairsResult: parseFloat(data.calcFromNegativePairsResult.totalNewNettoNegative),
+      calcFromPairsResult: data.calcFromPairsResult,
+      calcFromNegativePairsResult: data.calcFromNegativePairsResult,
       categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane
-      totalIncome: parseFloat(data.totalIncome.totalIncome),
+      totalIncome: data.totalIncome,
       totalExpensesCat: data.totalExpensesCat, // Załóżmy, że to jest obiekt JSON
     },
   });
