@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import '../styles/custom.css';
+import BarChart from '../components/chart';
 
 
 interface CategoryValues {
@@ -36,7 +37,7 @@ interface FileDetails {
   };
 
   totalExpensesCat: {
-    [category: string]: string; // Zakładając, że każda kategoria to string z wartością
+    [category: string]: number; // Zakładając, że każda kategoria to string z wartością
   };
   // Zdefiniuj resztę potrzebnych pól...
 }
@@ -256,7 +257,7 @@ export default function Page() {
   return (
     
     <div className="containerMain">
-      <div className="container">
+      <div className="container1">
         <div className="title">
           <h3>Najnowszy plik: {data.latestFile}</h3>
         </div>
@@ -358,9 +359,15 @@ export default function Page() {
       </div>
       <div className="container2">
       <DataViewer />
-        <div className="loadButton">
+        {/* <div className="loadButton">
           <input type="file" onChange={handleFileUpload} />
+        </div> */}
+      </div>
+      <div className="container3">
+        <div className='title'>
+          <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
         </div>
+        <BarChart />
       </div>
     </div>
     
