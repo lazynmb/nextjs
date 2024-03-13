@@ -176,56 +176,57 @@ export function sumExpensesByCategory(allExp) {
     return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
   }
 
-async function processDocuments(directoryPath) {
-    const files = fs.readdirSync(directoryPath);
+// async function processDocuments(directoryPath) {
+//     const files = fs.readdirSync(directoryPath);
 
-    files.forEach(file => {
-        const filePath = path.join(directoryPath, file);
-        // Sprawdź, czy ścieżka jest plikiem
-        if (fs.statSync(filePath).isFile()) {
-            const htmlContent = fs.readFileSync(filePath, 'utf8');
-            const $ = cheerio.load(htmlContent);
-            const text = $('td > font').text();
+//     files.forEach(file => {
+//         const filePath = path.join(directoryPath, file);
+//         // Sprawdź, czy ścieżka jest plikiem
+//         if (fs.statSync(filePath).isFile()) {
+//             const htmlContent = fs.readFileSync(filePath, 'utf8');
+//             const $ = cheerio.load(htmlContent);
+//             const text = $('td > font').text();
 
-            const regex = /za okres od (\d{4}-\d{2}-\d{2}) do (\d{4}-\d{2}-\d{2})/;
-            const matches = regex.exec(text);
-            if (matches[1] && matches[2]) {
-                // Przygotowanie tekstu na nazwę pliku (zastąpienie lub usunięcie niedozwolonych znaków)
-                const safeFileName1 = matches[1].replace(/[\/\\?%*:|"<>]/g, '_');
-                const safeFileName2 = matches[2].replace(/[\/\\?%*:|"<>]/g, '_') + '.html';
-                const fullFileName = safeFileName1 + ' - ' + safeFileName2;
+//             const regex = /za okres od (\d{4}-\d{2}-\d{2}) do (\d{4}-\d{2}-\d{2})/;
+//             const matches = regex.exec(text);
+//             if (matches[1] && matches[2]) {
+//                 // Przygotowanie tekstu na nazwę pliku (zastąpienie lub usunięcie niedozwolonych znaków)
+//                 const safeFileName1 = matches[1].replace(/[\/\\?%*:|"<>]/g, '_');
+//                 const safeFileName2 = matches[2].replace(/[\/\\?%*:|"<>]/g, '_') + '.html';
+//                 const fullFileName = safeFileName1 + ' - ' + safeFileName2;
                 
-                const newFilePath = path.join(directoryPath, fullFileName);
+//                 const newFilePath = path.join(directoryPath, fullFileName);
 
-                // Zmiana nazwy pliku
-                fs.renameSync(filePath, newFilePath);
-                console.log(`Zmieniono nazwę pliku na: ${newFilePath}`);
-            }
+//                 // Zmiana nazwy pliku
+//                 fs.renameSync(filePath, newFilePath);
+//                 console.log(`Zmieniono nazwę pliku na: ${newFilePath}`);
+//             }
 
-            if (matches[1] && matches[2]) {
-                const startDate = new Date(matches[1]);
-                const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1);
+//             if (matches[1] && matches[2]) {
+//                 const startDate = new Date(matches[1]);
+//                 const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1);
 
-            if (matches[1] === startDate.toISOString().split('T')[0] && 
-                text.includes(endDate.toISOString().split('T')[0])) {
-                const newFileName = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}.html`;
-                const newDirectoryPath = path.join(directoryPath, 'miesiace');
-                if (!fs.existsSync(newDirectoryPath)) {
-                    fs.mkdirSync(newDirectoryPath);
-                }
-                const newFilePath = path.join(newDirectoryPath, newFileName);
-                if (!fs.existsSync(newFilePath)) {
-                    fs.copyFileSync(filePath, newFilePath)
-                    fs.unlinkSync(filePath);
-                    console.log(`Przeniesiono plik ${file} do katalogu miesiace jako ${newFileName}`);
-                } else {
-                    fs.unlinkSync(filePath);
-                    console.log(`Plik ${newFileName} już istnieje w katalogu miesiace. Pomijam.`);
-                }
-            }
-        }}
-    });
-}
+//             if (matches[1] === startDate.toISOString().split('T')[0] && 
+//                 text.includes(endDate.toISOString().split('T')[0])) {
+//                 const newFileName = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}.html`;
+//                 const newDirectoryPath = path.join(directoryPath, 'miesiace');
+//                 if (!fs.existsSync(newDirectoryPath)) {
+//                     fs.mkdirSync(newDirectoryPath);
+//                 }
+//                 const newFilePath = path.join(newDirectoryPath, newFileName);
+//                 if (!fs.existsSync(newFilePath)) {
+//                     fs.copyFileSync(filePath, newFilePath)
+//                     fs.unlinkSync(filePath);
+//                     console.log(`Przeniesiono plik ${file} do katalogu miesiace jako ${newFileName}`);
+//                 } else {
+//                     fs.unlinkSync(filePath);
+//                     console.log(`Plik ${newFileName} już istnieje w katalogu miesiace. Pomijam.`);
+//                 }
+//             }
+//         }}
+//     });
+// } 
+// Funkcja do przenoszenia plików do katalogu miesiace
 
 
 export const config = {
@@ -255,10 +256,10 @@ export default async function handler(req, res) {
         const totalIncome = countIncome(calcFromPairsResult.totalNet, calcFromNegativePairsResult.totalNewNettoNegative);
         const totalAllExp = categories(filePath);
         const totalExpensesCat = sumExpensesByCategory(totalAllExp);
-        const processDocumentsResult = processDocuments(directoryPath);
+        // const processDocumentsResult = processDocuments(directoryPath);
 
         // Zwróć wyniki jako JSON
-        res.status(200).json({ latestFile, processDocumentsResult, totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
+        res.status(200).json({ latestFile, totalExpensesCat, calcFromPairsResult, calcFromNegativePairsResult, categoriesResults, totalIncome, totalAllExp });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
