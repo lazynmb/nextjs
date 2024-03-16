@@ -78,8 +78,7 @@ body {
 
 .title {
   color: #e7e7e7;
-  font-size: 1em;
-  grid-area: header;
+  font-size: 3em;
 }
 
 .container2 {  
@@ -99,6 +98,21 @@ body {
 }
 
 .container3 {  
+  display: grid;
+  border: 0.1rem solid #42474C;
+  border-radius: 10px;  
+  padding: 1rem;
+  margin-top: 1em;
+  grid-template-columns: 1fr;;
+  grid-template-rows: auto;
+  gap: 0px 20px;
+  margin-left: 8%;
+  margin-right: 8%;
+  grid-auto-flow: row;
+  overflow: hidden;
+}
+
+.wykres {  
   display: grid;
   border: 0.1rem solid #42474C;
   border-radius: 10px;  

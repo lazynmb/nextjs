@@ -32,6 +32,17 @@ model Result {
   createdAt           DateTime  @default(now())
 }
 
+model ResultUncomplete {
+  fileName            String   @unique
+  calcFromPairsResult Json
+  calcFromNegativePairsResult Json
+  categoriesResult    Json
+  totalIncome         Json
+  // Załóżmy, że totalExpensesCat to JSON
+  totalExpensesCat    Json
+  createdAt           DateTime  @default(now())
+}
+
 model ProcessedFile {
   id        Int      @id @default(autoincrement())
   fileName  String   @unique

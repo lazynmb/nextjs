@@ -87,6 +87,7 @@ function DataViewer() {
 
   return (
     <div>
+      <div className='wybormy'>
       <select onChange={(e) => handleFileChange(e.target.value)} value={selectedFileName}>
         <option value="">Wybierz plik</option>
         {fileNames.map((fileName, index) => (
@@ -95,7 +96,8 @@ function DataViewer() {
           </option>
         ))}
       </select>
-
+      </div>
+      <div></div>
       {fileDetails && (
         <React.Fragment>
         <div className='container-miesiace'>
@@ -192,31 +194,48 @@ export default function Page() {
 
   const [isTableExpanded, setIsTableExpanded] = useState(false);
 
-  const handleFileUpload = async (event:React.ChangeEvent<HTMLInputElement> ) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0]; // Teraz 'file' jest poprawnie zdefiniowane
-  
-      const formData = new FormData();
-      formData.append('file', file);
-  
-      try {
-        const response = await fetch('/api/upload', {
+  const handleFileUpload = async (event) => {
+  if (event.target.files && event.target.files.length > 0) {
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      // Najpierw przesyłanie pliku do serwera
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+ 
+      if (uploadResponse.ok) {
+        // Jeśli przesłanie się powiedzie, przetwarzaj dane
+        const uploadResult = await uploadResponse.json();
+        console.log('File uploaded successfully:', uploadResult);
+        const processDataResponse = await fetch('/api/processData', {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          // Przekazywanie nazwy pliku zgodnie z oczekiwaniami API
+          body: JSON.stringify({ fileName: uploadResult.fileName }), // załóżmy, że API oczekuje na ścieżkę pliku
         });
-  
-        if (response.ok) {
-          console.log('Plik został przesłany.');
-        } else {
-          console.error('Błąd podczas przesyłania pliku.');
+
+        if (!processDataResponse.ok) {
+          throw new Error('Failed to process file');
         }
-      } catch (error) {
-        console.error('Wyjątek podczas przesyłania pliku:', error);
+
+        // Dodatkowa logika po pomyślnym przetworzeniu pliku...
+        console.log('File processed successfully');
+      } else {
+        console.error('Failed to upload file');
       }
-    } else {
-      console.log('Nie wybrano pliku.');
+    } catch (error) {
+      console.error('Error during file upload and processing:', error);
     }
-  };
+  } else {
+    console.log('No file selected');
+  }
+};
+
+  
 
   function formatCurrency(value: any) {
     return value ? `${value} zł` : '';
@@ -224,22 +243,12 @@ export default function Page() {
 
   useEffect(() => {
     // Najpierw wykonaj przetwarzanie danych
-    fetch('/api/processData')
+    fetch('/api/calc')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Błąd podczas przetwarzania danych');
         }
         return response.json(); // Tutaj możesz oczekiwać, że processData zwróci potwierdzenie, że procesowanie się zakończyło
-      })
-      .then(() => {
-        // Po przetworzeniu danych, pobierz je z /api/calc
-        return fetch('/api/calc');
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Błąd podczas pobierania danych');
-        }
-        return response.json();
       })
       .then(data => {
         setData(data); // Ustaw stan danymi z /api/calc
@@ -359,9 +368,9 @@ export default function Page() {
       </div>
       <div className="container2">
       <DataViewer />
-        {/* <div className="loadButton">
+        <div className="loadButton">
           <input type="file" onChange={handleFileUpload} />
-        </div> */}
+        </div>
       </div>
       <div className="container3">
         <div className='title'>
