@@ -80,7 +80,15 @@ export function countIncome(totalNetto, totalNettoNegative){
 }
 
 export function parseHtmlAndExtractData(filePath) {
-    const data = fs.readFileSync(filePath, 'utf8');
+    let data;
+    if (filePath.length > 300) {
+        // Jeśli nazwa pliku ma więcej niż 300 znaków, przypisujemy nazwę pliku do zmiennej data
+        data = filePath;
+    } else {
+        // W przeciwnym razie odczytujemy zawartość pliku
+        data = fs.readFileSync(filePath, 'utf8');
+    }
+
     const $ = cheerio.load(data);
     let pairs = [];
     let negPairs = [];
@@ -104,8 +112,17 @@ export function parseHtmlAndExtractData(filePath) {
     return { positivePairs: pairs, negativePairs: negPairs };
 }
 
+
 export function categories(filePath){
-    const data = fs.readFileSync(filePath, 'utf8');
+    let data;
+    if (filePath.length > 300) {
+        // Jeśli nazwa pliku ma więcej niż 300 znaków, przypisujemy nazwę pliku do zmiennej data
+        data = filePath;
+    } else {
+        // W przeciwnym razie odczytujemy zawartość pliku
+        data = fs.readFileSync(filePath, 'utf8');
+    }
+
     const $ = cheerio.load(data);
 
     let bramka = [];

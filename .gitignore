@@ -28,7 +28,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
-
+stator-417421-2f4b9d1c9db4.json
 # vercel
 .vercel
 
