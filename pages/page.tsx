@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import '../styles/custom.css';
 import BarChart from '../components/chart';
 
@@ -194,7 +194,7 @@ export default function Page() {
 
   const [isTableExpanded, setIsTableExpanded] = useState(false);
 
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
   if (event.target.files && event.target.files.length > 0) {
     const file = event.target.files[0];
     const formData = new FormData();
