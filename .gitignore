@@ -35,3 +35,5 @@ stator-417421-2f4b9d1c9db4.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

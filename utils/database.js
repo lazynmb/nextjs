@@ -4,11 +4,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function saveToDatabase(data) {
-  const fileNameWithoutHtml = data.fileName.replace('.html', '');
 
   await prisma.result.create({
     data: {
-      fileName: fileNameWithoutHtml,
+      fileName: data.changeFileName,
       calcFromPairsResult: data.calcFromPairsResult,
       calcFromNegativePairsResult: data.calcFromNegativePairsResult,
       categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane
@@ -20,18 +19,17 @@ export async function saveToDatabase(data) {
 }
 
 
-export async function saveToDatabaseUncomplete(data) {
-  const fileNameWithoutHtml = data.fileName.replace('.html', '');
+// export async function saveToDatabaseUncomplete(data) {
 
-  await prisma.resultUncomplete.create({
-    data: {
-      fileName: fileNameWithoutHtml,
-      calcFromPairsResult: data.calcFromPairsResult,
-      calcFromNegativePairsResult: data.calcFromNegativePairsResult,
-      categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane
-      totalIncome: data.totalIncome,
-      totalExpensesCat: data.totalExpensesCat, // Załóżmy, że to jest obiekt JSON
-    },
-  });
-  console.log('Data saved');
-}
+//   await prisma.resultUncomplete.create({
+//     data: {
+//       fileName: changeFileName,
+//       calcFromPairsResult: data.calcFromPairsResult,
+//       calcFromNegativePairsResult: data.calcFromNegativePairsResult,
+//       categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane
+//       totalIncome: data.totalIncome,
+//       totalExpensesCat: data.totalExpensesCat, // Załóżmy, że to jest obiekt JSON
+//     },
+//   });
+//   console.log('Data saved');
+// }

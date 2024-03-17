@@ -3,6 +3,7 @@ import fs from 'fs';
 import path, { parse } from 'path';
 import cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
 import nextConnect from 'next-connect';
 import { IncomingForm } from 'formidable';
 
@@ -23,6 +24,7 @@ export function calcFromPairs(positivePairs) {
     let totalNet = 0;
     let totalVAT = 0;
     let totalBrutto = 0;
+    console.log('abc' + positivePairs);
 
     positivePairs.forEach(pairs => {
         const brutto = Object.values(pairs)[0];
@@ -79,17 +81,26 @@ export function countIncome(totalNetto, totalNettoNegative){
     return {totalIncome: totalIncome.toFixed(2)};
 }
 
-export function parseHtmlAndExtractData(filePath) {
-    let data;
-    if (filePath.length > 300) {
-        // Jeśli nazwa pliku ma więcej niż 300 znaków, przypisujemy nazwę pliku do zmiennej data
-        data = filePath;
+export async function parseHtmlAndExtractData(filePath) {
+    let dataBuffer;
+    console.log(filePath);
+
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        console.log('przetwarzam URL');
+        // Jeśli argument to URL, pobieramy dane i przekształcamy je na Buffer
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Nie udało się pobrać danych z URL: ${filePath}`);
+        }
+        const data = await response.arrayBuffer(); // Pobieranie danych jako ArrayBuffer
+        dataBuffer = Buffer.from(data); // Konwersja ArrayBuffer na Buffer
     } else {
         // W przeciwnym razie odczytujemy zawartość pliku
-        data = fs.readFileSync(filePath, 'utf8');
+        dataBuffer = fs.readFileSync(filePath, 'utf8');
+        console.log('przetwarzam plik lokalny');
     }
 
-    const $ = cheerio.load(data);
+    const $ = cheerio.load(dataBuffer);
     let pairs = [];
     let negPairs = [];
 
@@ -109,21 +120,31 @@ export function parseHtmlAndExtractData(filePath) {
     });
 
     // Teraz zwracamy obie listy
+    console.log(pairs);
     return { positivePairs: pairs, negativePairs: negPairs };
 }
 
 
-export function categories(filePath){
-    let data;
-    if (filePath.length > 300) {
-        // Jeśli nazwa pliku ma więcej niż 300 znaków, przypisujemy nazwę pliku do zmiennej data
-        data = filePath;
+export async function categories(filePath){
+    let dataBuffer;
+    console.log(filePath);
+
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        console.log('przetwarzam URL');
+        // Jeśli argument to URL, pobieramy dane i przekształcamy je na Buffer
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Nie udało się pobrać danych z URL: ${filePath}`);
+        }
+        const data = await response.arrayBuffer(); // Pobieranie danych jako ArrayBuffer
+        dataBuffer = Buffer.from(data); // Konwersja ArrayBuffer na Buffer
     } else {
         // W przeciwnym razie odczytujemy zawartość pliku
-        data = fs.readFileSync(filePath, 'utf8');
+        dataBuffer = fs.readFileSync(filePath, 'utf8');
+        console.log('przetwarzam plik lokalny');
     }
 
-    const $ = cheerio.load(data);
+    const $ = cheerio.load(dataBuffer);
 
     let bramka = [];
     let zaplaconyVat = [];
@@ -192,6 +213,37 @@ export function sumExpensesByCategory(allExp) {
   
     return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
   }
+
+
+export async function fileName(filePath) {
+    let dataBuffer;
+    console.log(filePath);
+
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        console.log('przetwarzam URL');
+        // Jeśli argument to URL, pobieramy dane i przekształcamy je na Buffer
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Nie udało się pobrać danych z URL: ${filePath}`);
+        }
+        const data = await response.arrayBuffer(); // Pobieranie danych jako ArrayBuffer
+        dataBuffer = Buffer.from(data); // Konwersja ArrayBuffer na Buffer
+    } else {
+        // W przeciwnym razie odczytujemy zawartość pliku
+        dataBuffer = fs.readFileSync(filePath, 'utf8');
+        console.log('przetwarzam plik lokalny');
+    }
+    const $ = cheerio.load(dataBuffer);
+    const text = $('td > font').text();
+    const regex = /za okres od (\d{4}-\d{2})-\d{2}/;
+    const matches = regex.exec(text);
+    if (matches && matches[1]) {
+        // Wykorzystanie wyodrębnionego roku i miesiąca bezpośrednio jako nazwy pliku
+        const safeFileName = matches[1].replace(/[\/\\?%*:|"<>]/g, '_');
+        console.log(safeFileName);
+        return safeFileName;
+    }
+}
 
 // async function processDocuments(directoryPath) {
 //     const files = fs.readdirSync(directoryPath);
@@ -266,7 +318,7 @@ export default async function handler(req, res) {
         }
 
         const filePath = path.join(directoryPath, latestFile);
-        const { positivePairs, negativePairs } = parseHtmlAndExtractData(filePath);
+        const { positivePairs, negativePairs } = await parseHtmlAndExtractData(filePath);
         const calcFromPairsResult = calcFromPairs(positivePairs);
         const calcFromNegativePairsResult = calcFromNegativePairs(negativePairs, positivePairs);
         const categoriesResults = categories(filePath);

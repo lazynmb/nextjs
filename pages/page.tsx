@@ -208,14 +208,13 @@ export default function Page() {
       });
  
       if (uploadResponse.ok) {
-        // Jeśli przesłanie się powiedzie, przetwarzaj dane
         const uploadResult = await uploadResponse.json();
         console.log('File uploaded successfully:', uploadResult);
         const processDataResponse = await fetch('/api/processData', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // Przekazywanie nazwy pliku zgodnie z oczekiwaniami API
-          body: JSON.stringify({ fileName: uploadResult.fileName }), // załóżmy, że API oczekuje na ścieżkę pliku
+          body: JSON.stringify({ downloadUrl: uploadResult.downloadUrl }),
         });
 
         if (!processDataResponse.ok) {
