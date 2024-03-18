@@ -234,8 +234,6 @@ export default function Page() {
   }
 };
 
-  
-
   function formatCurrency(value: any) {
     return value ? `${value} zł` : '';
   }

@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import { get } from '@vercel/blob';
-import { fileName, parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, countIncome, categories, sumExpensesByCategory } from './calc';
+import { checkIfFullMonth, fileName, parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, countIncome, categories, sumExpensesByCategory } from './calc';
 import { saveToDatabase } from '../../utils/database';
 import fetch from 'node-fetch';
+import { check } from 'prisma';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -33,9 +34,12 @@ export default async function handler(req, res) {
       const totalIncome = countIncome(calcFromPairsResult.totalNet, calcFromNegativePairsResult.totalNewNettoNegative);
       const totalAllExp = await categories(downloadUrl);
       const totalExpensesCat = sumExpensesByCategory(totalAllExp);
+      const isFullMonth = await checkIfFullMonth(downloadUrl);
+
 
       // Zapisz wyniki do bazy danych
       await saveToDatabase({
+        isFullMonth,
         changeFileName,
         calcFromPairsResult,
         calcFromNegativePairsResult,
@@ -44,11 +48,8 @@ export default async function handler(req, res) {
         totalAllExp,
         totalExpensesCat,
       });
-
-      console.log(`Przetworzono plik: ${downloadUrl}`);
-      res.status(200).json({ message: 'File processed successfully.' });
+      res.status(200).json({ message: 'Plik został przetworzony i wyslany do bazy danych.' });
     } catch (error) {
-      console.error('Error processing file', error);
-      res.status(500).json({ message: 'Internal Server Error during file processing' });
-    }
-  }
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }}
