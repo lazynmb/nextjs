@@ -1,10 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-import { get } from '@vercel/blob';
 import { checkIfFullMonth, fileName, parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, countIncome, categories, sumExpensesByCategory } from './calc';
 import { saveToDatabase } from '../../utils/database';
 import fetch from 'node-fetch';
-import { check } from 'prisma';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -21,7 +17,6 @@ export default async function handler(req, res) {
     if (!fileResponse.ok) {
       throw new Error(`Nie udało się pobrać pliku: ${downloadUrl}`);
     }
-    const content = await fileResponse.blob();
 
 
       // Przetwarzanie pliku...

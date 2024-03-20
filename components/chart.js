@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart, LinearScale, CategoryScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { PrismaClient } from '@prisma/client';
+
+
+const prisma = new PrismaClient();
 
 Chart.register(LinearScale, CategoryScale, BarElement, Title, Tooltip, Legend);
 
@@ -32,7 +36,9 @@ const BarChart = () => {
     const fetchData = async () => {
       // Tu powinieneś pobrać dane w oparciu o wybrany rok i miesiąc
       // Na potrzeby przykładu używam stałych danych
-      const data = [12000, 19000, 3000, 5000, 2000, 3000, 4000, 500, 300, 700, 600];
+      const data = [
+        12000, 19000, 3000, 5000, 2000, 3000, 4000, 500, 300, 700, 600
+      ];
       setChartData((prevState) => ({
         ...prevState,
         datasets: [{

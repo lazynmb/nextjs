@@ -9,7 +9,7 @@ export async function saveToDatabase(data) {
     // Najpierw sprawdzamy, czy plik o danej nazwie już istnieje
     const existingFile = await prisma.result.findUnique({
       where: {
-        fileName: data.changeFileName,
+        fileName: data.changeFileName.newFileName,
       },
     });
 
@@ -23,7 +23,9 @@ export async function saveToDatabase(data) {
       // Jeśli plik nie istnieje, tworzymy nowy wpis
       await prisma.result.create({
         data: {
-          fileName: data.changeFileName,
+          fileName: data.changeFileName.newFileName,
+          month: data.changeFileName.month,
+          year: data.changeFileName.year,
           calcFromPairsResult: data.calcFromPairsResult,
           calcFromNegativePairsResult: data.calcFromNegativePairsResult,
           categoriesResult: data.categoriesResults,
@@ -36,7 +38,9 @@ export async function saveToDatabase(data) {
     } else {
       await prisma.resultUncomplete.create({
         data: {
-          fileName: data.changeFileName,
+          fileName: data.changeFileName.newFileName,
+          month: data.changeFileName.month,
+          year: data.changeFileName.year,
           calcFromPairsResult: data.calcFromPairsResult,
           calcFromNegativePairsResult: data.calcFromNegativePairsResult,
           categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane

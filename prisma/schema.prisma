@@ -23,22 +23,24 @@ model User {
 
 model Result {
   fileName            String   @unique
+  month               Int
+  year                Int
   calcFromPairsResult Json
   calcFromNegativePairsResult Json
   categoriesResult    Json
   totalIncome         Json
-  // Załóżmy, że totalExpensesCat to JSON
   totalExpensesCat    Json
   createdAt           DateTime  @default(now())
 }
 
 model ResultUncomplete {
   fileName            String   @unique
+  month               Int
+  year                Int
   calcFromPairsResult Json
   calcFromNegativePairsResult Json
   categoriesResult    Json
   totalIncome         Json
-  // Załóżmy, że totalExpensesCat to JSON
   totalExpensesCat    Json
   createdAt           DateTime  @default(now())
 }

@@ -326,8 +326,11 @@ export async function fileName(filePath) {
     // Wykorzystanie wyodrębnionego roku i miesiąca bezpośrednio jako nazwy pliku
     const safeFileName = matches[1] + " - " + matches[2];
     let newFileName = safeFileName.replace(/[\/\\?%*:|"<>]/g, "_");
-    console.log(newFileName);
-    return newFileName;
+    const startDate = matches[1].split("-");
+    const year = parseInt(startDate[0]);
+    const month = parseInt(startDate[1]);
+    console.log(newFileName, month, year);
+    return { newFileName, month, year };
   }
 }
 
