@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-prisma = new PrismaClient();
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -15,18 +15,29 @@ export default async function handler(req, res) {
 
   try {
     // Pobieranie danych z bazy w oparciu o przekazany rok i miesiąc
-    const results = await prisma.results.findMany({
+    const results = await prisma.result.findMany({
       where: {
-        year: parseInt(year, 10), // Konwersja na liczbę
-        month: parseInt(month, 10), // Konwersja na liczbę
+        AND: [
+          { year: parseInt(year, 10) }, // Konwersja na liczbę
+          { month: parseInt(month, 10) } // Konwersja na liczbę
+        ]
       },
       select: {
-        data: true, // Dostosuj do struktury swojej bazy danych
+        // Tutaj określasz, które kolumny chcesz zwrócić z pasujących wierszy.
+        // Na przykład, jeśli chcesz zwrócić wszystkie dane z wiersza:
+        calcFromPairsResult: true,
+        calcFromNegativePairsResult: true,
+        categoriesResult: true,
+        totalIncome: true,
+        totalExpensesCat: true,
+        // Dodaj resztę kolumn, które chcesz zwrócić
       },
     });
 
     // Zwracanie danych jako odpowiedź JSON
+    console.log('Data fetched successfully:', results);
     res.status(200).json(results);
+    console.log('Data fetched successfully:');
   } catch (error) {
     console.error('Error accessing the database:', error);
     res.status(500).json({ message: 'Internal Server Error' });

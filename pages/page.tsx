@@ -56,8 +56,10 @@ function DataViewer() {
         console.error('Failed to fetch file names');
         return;
       }
-      const results = await response.json();
-      setFileNames(results.map((result: Record<string, unknown>) => result.fileName));
+      let results = await response.json();
+      // Sortowanie wyników alfabetycznie
+      results = results.sort((a, b) => a.fileName.localeCompare(b.fileName));
+      setFileNames(results.map((result) => result.fileName));
     }
     fetchFileNames();
   }, []);
@@ -194,7 +196,8 @@ function DataViewerUncomplete() {
         console.error('Failed to fetch file names');
         return;
       }
-      const results = await response.json();
+      let results = await response.json();
+      results = results.sort((a, b) => a.fileName.localeCompare(b.fileName));
       setFileNames(results.map((result: Record<string, unknown>) => result.fileName));
     }
     fetchFileNames();
