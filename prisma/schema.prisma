@@ -30,6 +30,7 @@ model Result {
   categoriesResult    Json
   totalIncome         Json
   totalExpensesCat    Json
+  pozostaleDetail     Json
   createdAt           DateTime  @default(now())
 }
 
@@ -42,6 +43,7 @@ model ResultUncomplete {
   categoriesResult    Json
   totalIncome         Json
   totalExpensesCat    Json
+  pozostaleDetail     Json
   createdAt           DateTime  @default(now())
 }
 

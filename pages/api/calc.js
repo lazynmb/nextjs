@@ -54,6 +54,8 @@ export function calcFromNegativePairs(negativePairs, positivePairs) {
   let totalBruttoNegative = 0;
   let totalNettoNegative = 0;
 
+  const sortedNegativePairsArray = Object.entries(negativePairs).sort((a, b) => a[1] - b[1]);
+
   negativePairs.forEach((pair) => {
     const bruttoNegative = Object.values(pair)[0];
     const netNegative = bruttoNegative / 1.23;
@@ -74,6 +76,7 @@ export function calcFromNegativePairs(negativePairs, positivePairs) {
     totalBruttoNegative: totalBruttoNegative.toFixed(2),
     totalVATNettoNegative: totalVATNettoNegative.toFixed(2),
     totalNewNettoNegative: totalNewNettoNegative.toFixed(2),
+    negativePairs,
   };
 }
 
@@ -139,7 +142,9 @@ export async function parseHtmlAndExtractData(filePath) {
     });
 
   // Teraz zwracamy obie listy
+  console.log(pairs, negPairs);
   return { positivePairs: pairs, negativePairs: negPairs };
+  
 }
 
 export async function categories(filePath) {
@@ -164,12 +169,23 @@ export async function categories(filePath) {
   const $ = cheerio.load(dataBuffer);
 
   let bramka = [];
+  let bramkaDetail = {};
   let zaplaconyVat = [];
+  let zaplaconyVatDetail = {};
   let dochodowy = [];
+  let dochodowyDetail = {};
   let subskrypcje = [];
+  let subskrypcjeDetail = {};
   let czynsze = [];
+  let czynszeDetail = {};
   let uslugi = [];
+  let uslugiDetail = {};
   let wyplaty = [];
+  let wyplatyDetail = {};
+  let ZUS = [];
+  let ZUSDetail = {};
+  let pozostale = [];
+  let pozostaleDetail = {};
 
   $("table")
     .eq(4)
@@ -189,8 +205,14 @@ export async function categories(filePath) {
         .replace(",", ".")
         .replace(/[^0-9.-]/g, "");
       const col5AsFloat = parseFloat(col5);
+      let classified = false;
       const bramkaStrings = ["MELEMENTS"];
-      const dochodowyStrings = ["URZĄD SKARBOWY"];
+      const dochodowyStrings = [
+        "PIT-4R",
+        "PIT4R"
+      ];
+      const ZUSStrings = ["ZAKŁAD UBEZPIECZEŃ SPOŁECZNYCH"];
+      const zaplaconyVatStrings = ["VAT-7"];
       const subskrypcjeStrings = [
         "AUTO-TUNE",
         "YOUTUBE",
@@ -210,6 +232,8 @@ export async function categories(filePath) {
         "CHATGPT",
         "SUPABASE",
         "PADDLE.NET",
+        "CHATGPT",
+        "GOOGLE",
       ];
       const czynszeStrings = ["LUKASIEWICZ", "WOJSKOWA"];
       const uslugiStrings = [
@@ -218,55 +242,146 @@ export async function categories(filePath) {
         "PIASTPOL",
         "JUWENTUS",
         "ORANGE",
+        "ABCGO",
+        "WE3STUDIO",
       ];
       const wyplatyStrings = [
         "ŁOŚ JONATAN",
+        "JONATAN ŁOŚ",
         "IWAN DOMINIK",
+        "DOMINIK IWAN",
         "CYBULSKI SZYMON",
+        "SZYMON CYBULSKI",
         "LITKOWIEC BRAJAN",
+        "BRAJAN LITKOWIEC",
         "PALARCZYK DOMINIK",
+        "DOMINIK PALARCZYK",
         "DREWNIAK KORNELIUSZ",
+        "KORNELIUSZ DREWNIAK",
         "PAJDZIK WIKTOR",
+        "WIKTOR PAJDZIK",
         "KRZEMIŃSKI SEBASTIAN",
+        "SEBASTIAN KRZEMIŃSKI",
         "MICKIEWICZ PAWEŁ",
+        "PAWEŁ MICKIEWICZ",
         "ROZWADOWSKI JAKUB",
+        "JAKUB ROZWADOWSKI",
         "MADEJ SANDRA",
+        "SANDRA MADEJ",
         "WRÓBLEWSKI ŁUKASZ",
+        "ŁUKASZ WRÓBLEWSKI",
         "OSTROWSKI HUBERT",
+        "HUBERT OSTROWSKI",
         "NOWICKI KAROL",
+        "KAROL NOWICKI",
         "KOWALCZYK MACIEJ",
+        "MACIEJ KOWALCZYK",
         "KAKIETEK MARIUSZ",
+        "MARIUSZ KAKIETEK",
       ];
 
       if (bramkaStrings.some((str) => col2.includes(str)) && col5AsFloat >= 0) {
         bramka.push(col5AsFloat);
+        classified = true;
+        if (!bramkaDetail[col2]) {
+          bramkaDetail[col2] = [col5AsFloat];
+        } else {
+          bramkaDetail[col2].push(col5AsFloat);
+        }
       } else if (
         dochodowyStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
         dochodowy.push(col5AsFloat);
+        classified = true;
+        if (!dochodowyDetail[col2]) {
+          dochodowyDetail[col2] = [col5AsFloat];
+        } else {
+          dochodowyDetail[col2].push(col5AsFloat);
+        }
+      } else if (
+        ZUSStrings.some((str) => col2.includes(str)) &&
+        col5AsFloat <= 0
+      ) {
+        ZUS.push(col5AsFloat);
+        classified = true;
+        if (!ZUSDetail[col2]) {
+          ZUSDetail[col2] = [col5AsFloat];
+        } else {
+          ZUSDetail[col2].push(col5AsFloat);
+        }
       } else if (
         subskrypcjeStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
         subskrypcje.push(col5AsFloat);
+        classified = true;
+        if (!subskrypcjeDetail[col2]) {
+          subskrypcjeDetail[col2] = [col5AsFloat];
+        } else {
+          subskrypcjeDetail[col2].push(col5AsFloat);
+        }
       } else if (
         czynszeStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
         czynsze.push(col5AsFloat);
+        classified = true;
+        if (!czynszeDetail[col2]) {
+          czynszeDetail[col2] = [col5AsFloat];
+        } else {
+          czynszeDetail[col2].push(col5AsFloat);
+        }
       } else if (
+        zaplaconyVatStrings.some((str) => col2.includes(str)) &&
+        col5AsFloat <= 0
+      ) {
+        zaplaconyVat.push(col5AsFloat);
+        classified = true;
+        if (!zaplaconyVatDetail[col2]) {
+          zaplaconyVatDetail[col2] = [col5AsFloat];
+        } else {
+          zaplaconyVatDetail[col2].push(col5AsFloat);
+        }
+      }else if (
         uslugiStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
         uslugi.push(col5AsFloat);
+        classified = true;
+        if (!uslugiDetail[col2]) {
+          uslugiDetail[col2] = [col5AsFloat];
+        } else {
+          uslugiDetail[col2].push(col5AsFloat);
+        }
       } else if (
         wyplatyStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
         wyplaty.push(col5AsFloat);
+        classified = true;
+        if (!wyplatyDetail[col2]) {
+          wyplatyDetail[col2] = [col5AsFloat];
+        } else {
+          wyplatyDetail[col2].push(col5AsFloat);
+        }
+      }
+      if (!classified && col5AsFloat < 0) {
+        pozostale.push(col5AsFloat);
+        
+        // Dodajemy do pozostaleDetail
+        if (!pozostaleDetail[col2]) {
+          pozostaleDetail[col2] = [col5AsFloat];
+        } else {
+          pozostaleDetail[col2].push(col5AsFloat);
+        }
       }
     });
+  
+  // Tutaj masz pozostale jako sumę i pozostaleDetail z detalami
+  console.log(pozostale); // Powinno wyświetlić sumę wszystkich nieklasyfikowanych transakcji
+  console.log(pozostaleDetail);
+
 
   let allExp = {
     bramka,
@@ -276,11 +391,20 @@ export async function categories(filePath) {
     czynsze,
     uslugi,
     wyplaty,
+    pozostale,
   };
-  return allExp;
+
+  let allExpDetail = {
+    pozostaleDetail,
+    wyplatyDetail,
+  };
+
+  let result = { allExp, allExpDetail };
+  return result;
 }
 
-export function sumExpensesByCategory(allExp) {
+export function sumExpensesByCategory(data) {
+  const allExp = data.allExp; // Zakładam, że allExp jest pierwszym kluczem w przekazanym obiekcie
   let totalExpensesSum = {};
 
   // Iteracja przez kategorie w obiekcie allExp
@@ -288,13 +412,10 @@ export function sumExpensesByCategory(allExp) {
     let categoryTotal = 0; // Suma dla bieżącej kategorii
 
     // Iteracja przez wydatki w danej kategorii
-    for (let i = 0; i < allExp[category].length; i++) {
-      const expense = allExp[category][i];
-      expense.toFixed(2);
-      categoryTotal += expense; // Dodawanie wartości wydatku do sumy kategorii
-      parseFloat(categoryTotal);
-    }
-    totalExpensesSum[category] = categoryTotal.toFixed(2);
+    allExp[category].forEach(expense => {
+      categoryTotal += parseFloat(expense); // Dodawanie wartości wydatku do sumy kategorii
+    });
+    totalExpensesSum[category] = categoryTotal.toFixed(2); // Formatowanie sumy do dwóch miejsc po przecinku
   }
 
   return totalExpensesSum; // Zwrócenie obiektu z sumami dla każdej kategorii
@@ -460,7 +581,7 @@ export default async function handler(req, res) {
       calcFromNegativePairsResult.totalNewNettoNegative
     );
     const totalAllExp = await categories(filePath);
-    const totalExpensesCat = sumExpensesByCategory(totalAllExp);
+    const totalExpensesCat = sumExpensesByCategory(totalAllExp.result.allExp);
     let isFullMonth =  await checkIfFullMonth(filePath);
 
     res

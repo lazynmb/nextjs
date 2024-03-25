@@ -1,5 +1,5 @@
-import { checkIfFullMonth, fileName, parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, countIncome, categories, sumExpensesByCategory } from './calc';
-import { saveToDatabase } from '../../utils/database';
+import { checkIfFullMonth, fileName, parseHtmlAndExtractData, calcFromPairs, calcFromNegativePairs, countIncome, categories, sumExpensesByCategory } from '../pages/api/calc';
+import { saveToDatabase } from '../utils/database';
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {

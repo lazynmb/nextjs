@@ -3,7 +3,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { ChangeEvent } from 'react';
 import '../styles/custom.css';
 import BarChart from '../components/chart';
-
+import BarChartObrot from '../components/chartObrot';
+import ResetDatabase from '../components/resetDatabase';
 
 interface CategoryValues {
   [categoryName: string]: number[];
@@ -58,8 +59,8 @@ function DataViewer() {
       }
       let results = await response.json();
       // Sortowanie wyników alfabetycznie
-      results = results.sort((a, b) => a.fileName.localeCompare(b.fileName));
-      setFileNames(results.map((result) => result.fileName));
+      results = results.sort((a: { fileName: string }, b: { fileName: string }) => a.fileName.localeCompare(b.fileName));
+      setFileNames(results.map((result: { fileName: string }) => result.fileName));
     }
     fetchFileNames();
   }, []);
@@ -197,8 +198,8 @@ function DataViewerUncomplete() {
         return;
       }
       let results = await response.json();
-      results = results.sort((a, b) => a.fileName.localeCompare(b.fileName));
-      setFileNames(results.map((result: Record<string, unknown>) => result.fileName));
+      results = results.sort((a: { fileName: string }, b: { fileName: string }) => a.fileName.localeCompare(b.fileName));
+      setFileNames(results.map((result: { fileName: string }) => result.fileName));
     }
     fetchFileNames();
   }, []);
@@ -421,6 +422,15 @@ export default function Page() {
           <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
         </div>
         <BarChart />
+      </div>
+      <div className="container3">
+        <div className='title'>
+          <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
+        </div>
+        <BarChartObrot />
+      </div>
+      <div>
+        <ResetDatabase />
       </div>
     </div>
     

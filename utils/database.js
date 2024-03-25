@@ -31,6 +31,7 @@ export async function saveToDatabase(data) {
           categoriesResult: data.categoriesResults,
           totalIncome: data.totalIncome,
           totalExpensesCat: data.totalExpensesCat,
+          pozostaleDetail: data.totalAllExp,
         },
       });
 
@@ -45,7 +46,8 @@ export async function saveToDatabase(data) {
           calcFromNegativePairsResult: data.calcFromNegativePairsResult,
           categoriesResult: data.categoriesResults, // Upewnij się, że to pole jest poprawnie przetwarzane
           totalIncome: data.totalIncome,
-          totalExpensesCat: data.totalExpensesCat, // Załóżmy, że to jest obiekt JSON
+          totalExpensesCat: data.totalExpensesCat,
+          pozostaleDetail: data.totalAllExp, // Załóżmy, że to jest obiekt JSON
         },
       });
       console.log('Data saved');
