@@ -397,6 +397,13 @@ export async function categories(filePath) {
   let allExpDetail = {
     pozostaleDetail,
     wyplatyDetail,
+    uslugiDetail,
+    czynszeDetail,
+    subskrypcjeDetail,
+    dochodowyDetail,
+    ZUSDetail,
+    zaplaconyVatDetail,
+    bramkaDetail,
   };
 
   let result = { allExp, allExpDetail };

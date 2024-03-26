@@ -17,6 +17,16 @@ body {
   margin: 0;
   padding: 0;
 
+  .modal-children h1,
+  .modal-children h2,
+  .modal-children h3,
+  .modal-children h4,
+  .modal-children h5,
+  .modal-children h6 {
+    font-size: 16px; /* Zmniejsz rozmiar czcionki dla nagłówków */
+  }
+
+
 }
 .header {
   margin-left: 15%;
