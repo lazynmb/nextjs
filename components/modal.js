@@ -48,6 +48,10 @@ const childrenContainerStyle = {
     },
   };
 
+
+
+  
+
 // Komponent Modal
 const Modal = ({ title, children, onClose }) => {
   return (

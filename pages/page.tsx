@@ -405,18 +405,22 @@ export default function Page() {
   return (
     
     <div className="containerMain">
-      <div className="container2">
-      <DataViewer />
-        <div className="loadButton">
-          <input type="file" onChange={handleFileUpload} />
+      <div className="gornyPanel">
+        <div className="container2">
+        <DataViewer />
+          <div className="loadButton">
+            <input type="file" onChange={handleFileUpload} />
+          </div>
         </div>
+        
+        <div className="container2">
+        <DataViewerUncomplete />
+          <div className="loadButton">
+            <input type="file" onChange={handleFileUpload} />
+          </div>
+          </div>
       </div>
-      <div className="container2">
-      <DataViewerUncomplete />
-        <div className="loadButton">
-          <input type="file" onChange={handleFileUpload} />
-        </div>
-      </div>
+      <div className="wykresPanel">
       <div className="container3">
         <div className='title'>
           <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
@@ -425,9 +429,10 @@ export default function Page() {
       </div>
       <div className="container3">
         <div className='title'>
-          <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
+          <h3>Cashflow miesiąc</h3>
         </div>
         <BarChartObrot />
+      </div>
       </div>
       <div>
         <ResetDatabase />

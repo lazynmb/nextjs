@@ -35,7 +35,10 @@ body {
   border: 0.1rem solid #42474C;
   border-radius: 10px;  
   padding: 1rem;
-  
+}
+
+.containerMain {
+  margin:0%;
 }
 
 .container1 {  
@@ -47,8 +50,8 @@ body {
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: auto;
   gap: 0px 20px;
-  margin-left: 8%;
-  margin-right: 8%;
+  margin-left: 2%;
+  margin-right: 2%;
   grid-auto-flow: row;
   overflow: hidden;
   grid-template-areas:
@@ -107,20 +110,22 @@ body {
 
 }
 
-.container3 {  
-  display: grid;
+/* .container3 {   */
+  /* display: grid;
   border: 0.1rem solid #42474C;
   border-radius: 10px;  
   padding: 1rem;
-  margin-top: 1em;
-  grid-template-columns: 1fr;;
-  grid-template-rows: auto;
+  margin-top: 3em;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 0px 20px;
-  margin-left: 8%;
-  margin-right: 8%;
+  margin-left: 2%;
+  margin-right: 2%;
+  width: 100%;
+  height: 100%;
   grid-auto-flow: row;
-  overflow: hidden;
-}
+  overflow: hidden; */
+/* } */
 
 .wykres {  
   display: grid;
@@ -135,4 +140,28 @@ body {
   margin-right: 8%;
   grid-auto-flow: row;
   overflow: hidden;
+}
+
+.gornyPanel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 0px 20px;
+  margin-left: 8%;
+  margin-right: 8%;
+  grid-auto-flow: row;
+  overflow: hidden;
+}
+
+.wykresPanel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 0px 20px;
+  margin-top: 2%;
+  margin-left: 3%;
+  margin-right: 3%;
+  height: 100%;
+  grid-auto-flow: row;
+  overflow: visible;
 }
