@@ -1,5 +1,5 @@
 import { list } from '@vercel/blob'; // Zakładając, że istnieje funkcja `list` w pakiecie @vercel/blob
-import deleteDuplicates from './DeleteDuplicatsFromServer';
+import deleteDuplicates from './deleteDuplicatsFromServer';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
