@@ -182,10 +182,15 @@ export async function categories(filePath) {
   let uslugiDetail = {};
   let wyplaty = [];
   let wyplatyDetail = {};
-  let ZUS = [];
-  let ZUSDetail = {};
+  let zus = [];
+  let zusDetail = {};
   let pozostale = [];
   let pozostaleDetail = {};
+  let pozostaleWplywy = [];
+  let pozostaleWplywyDetail = {};
+  let platnosciFirmy = [];
+  let platnosciFirmyDetail = {};
+
 
   $("table")
     .eq(4)
@@ -207,11 +212,27 @@ export async function categories(filePath) {
       const col5AsFloat = parseFloat(col5);
       let classified = false;
       const bramkaStrings = ["MELEMENTS"];
-      const dochodowyStrings = [
-        "PIT-4R",
-        "PIT4R"
+      const platnosciFirmyStrings = [
+        "MUZYKA SPÓŁKA", 
+        "SBM GROUP", 
+        "KLIK SPÓŁKA",
+        "WARNER MUSIC",
+        "UNIVERSAL MUSIC",
+        "SPACERANGE",
+        "QUEQUALITY",
+        "DOPEHOUSE",
+        "2115 SPÓŁKA",
+        "ARTRAMA",
+        "PEZET ENTERTAINMENT",
       ];
-      const ZUSStrings = ["ZAKŁAD UBEZPIECZEŃ SPOŁECZNYCH"];
+      const dochodowyStrings = [
+        "CIT-8",
+      ];
+      const zusStrings = [
+        "ZAKŁAD UBEZPIECZEŃ SPOŁECZNYCH",
+        "PIT-4R",
+        "PIT4R",
+      ];
       const zaplaconyVatStrings = ["VAT-7"];
       const subskrypcjeStrings = [
         "AUTO-TUNE",
@@ -220,11 +241,13 @@ export async function categories(filePath) {
         "SLATE",
         "PLUGIN",
         "DROPBOX",
+        "Dropbox",
         "ADOBE",
         "SPLICE",
         "BENEFIT",
         "UNIVERSAL AUDIO",
         "PLAYSTATION",
+        "PlayStation",
         "WAVES",
         "HEROKU",
         "VERCEL",
@@ -244,6 +267,7 @@ export async function categories(filePath) {
         "ORANGE",
         "ABCGO",
         "WE3STUDIO",
+        "Starlink",
       ];
       const wyplatyStrings = [
         "ŁOŚ JONATAN",
@@ -300,15 +324,15 @@ export async function categories(filePath) {
           dochodowyDetail[col2].push(col5AsFloat);
         }
       } else if (
-        ZUSStrings.some((str) => col2.includes(str)) &&
+        zusStrings.some((str) => col2.includes(str)) &&
         col5AsFloat <= 0
       ) {
-        ZUS.push(col5AsFloat);
+        zus.push(col5AsFloat);
         classified = true;
-        if (!ZUSDetail[col2]) {
-          ZUSDetail[col2] = [col5AsFloat];
+        if (!zusDetail[col2]) {
+          zusDetail[col2] = [col5AsFloat];
         } else {
-          ZUSDetail[col2].push(col5AsFloat);
+          zusDetail[col2].push(col5AsFloat);
         }
       } else if (
         subskrypcjeStrings.some((str) => col2.includes(str)) &&
@@ -365,10 +389,20 @@ export async function categories(filePath) {
         } else {
           wyplatyDetail[col2].push(col5AsFloat);
         }
+      }else if (
+        platnosciFirmyStrings.some((str) => col2.includes(str)) &&
+        col5AsFloat > 0
+      ) {
+        platnosciFirmy.push(col5AsFloat);
+        classified = true;
+        if (!platnosciFirmyDetail[col2]) {
+          platnosciFirmyDetail[col2] = [col5AsFloat];
+        } else {
+          platnosciFirmyDetail[col2].push(col5AsFloat);
+        }
       }
       if (!classified && col5AsFloat < 0) {
         pozostale.push(col5AsFloat);
-        
         // Dodajemy do pozostaleDetail
         if (!pozostaleDetail[col2]) {
           pozostaleDetail[col2] = [col5AsFloat];
@@ -376,7 +410,15 @@ export async function categories(filePath) {
           pozostaleDetail[col2].push(col5AsFloat);
         }
       }
-    });
+      if (!classified && col5AsFloat > 0) {
+        pozostaleWplywy.push(col5AsFloat);
+        // Dodajemy do pozostaleDetail
+        if (!pozostaleWplywyDetail[col2]) {
+          pozostaleWplywyDetail[col2] = [col5AsFloat];
+        } else {
+          pozostaleWplywyDetail[col2].push(col5AsFloat);
+        }
+}});
   
   // Tutaj masz pozostale jako sumę i pozostaleDetail z detalami
   console.log(pozostale); // Powinno wyświetlić sumę wszystkich nieklasyfikowanych transakcji
@@ -391,7 +433,10 @@ export async function categories(filePath) {
     czynsze,
     uslugi,
     wyplaty,
+    zus,
     pozostale,
+    pozostaleWplywy,
+    platnosciFirmy,
   };
 
   let allExpDetail = {
@@ -401,9 +446,11 @@ export async function categories(filePath) {
     czynszeDetail,
     subskrypcjeDetail,
     dochodowyDetail,
-    ZUSDetail,
+    zusDetail,
     zaplaconyVatDetail,
     bramkaDetail,
+    pozostaleWplywyDetail,
+    platnosciFirmyDetail,
   };
 
   let result = { allExp, allExpDetail };

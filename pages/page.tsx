@@ -423,7 +423,7 @@ export default function Page() {
       <div className="wykresPanel">
       <div className="container3">
         <div className='title'>
-          <h3>Podsumowanie miesiaca (wypłaty i podatki -1)</h3>
+          <h3>Podsumowanie miesiaca (wypłaty i podatki miesiac +1)</h3>
         </div>
         <BarChart />
       </div>

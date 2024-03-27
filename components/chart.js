@@ -29,17 +29,22 @@ const BarChart = () => {
   );
   const [apiDataFirst, setApiDataFirst] = useState({});
   const [apiDataSecond, setApiDataSecond] = useState({});
+  const [salariesData, setSalariesData] = useState([]);
   const [chartData, setChartData] = useState({
     labels: [
-      "Wystawione FV",
+      "Pozostałe wpływy",
       "Opłacona bramka",
-      "Inne wpływy",
-      "Wpływy na konto",
+      "Firmy (realne wpłaty na konto)",
+      "Wpływy na konto (cashflow)",
+      "Wystawione FV (nieopłacone)",
+      "Przychód brutto (bramka + pozostałe wpływy + wystawione FV)",
       "Pełne koszta",
       "Pensje",
+      "Pensje konto + cash",
       "VAT",
       "Czynsze",
       "Dochodowy",
+      "ZUS + PIT",
       "Subskrypcje",
       "Usługi",
       "Pozostałe",
@@ -73,7 +78,11 @@ const BarChart = () => {
     "12",
   ];
 
+
+
+
   const updateChartData = async () => {
+    setHasError(false); // Reset stanu błędu przed pobraniem danych
     try {
       const response = await fetch(
         `/api/databaseFetchData?year=${selectedYear}&month=${selectedMonth}`
@@ -106,6 +115,32 @@ const BarChart = () => {
 
       const fetchedDataAPI2 = await responseAPI2.json();
 
+      // trzecie zapytanie do API Supabase
+
+
+      const responseSupabase = await fetch(
+          `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`);
+      const dataSupabase = await responseSupabase.json();
+
+      let responseSupabase2;
+      if (selectedMonth === "12") {
+        responseSupabase2 = await fetch(
+          `/api/supabaseInvoicesMonth?year=${yearAdd1}&month=01`
+        );
+        if (!responseSupabase2.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else {
+        responseSupabase2 = await fetch(
+          `/api/supabaseInvoicesMonth?year=${selectedYear}&month=${monthAdd1}`
+        );
+        if (!responseSupabase2.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      }
+
+        const dataSupabase2 = await responseSupabase2.json();
+
       // Zakładamy, że API zwraca tablicę obiektów i interesuje nas pierwszy element
       const data = fetchedData[0];
       console.log("Data from first API call:", data);
@@ -114,19 +149,31 @@ const BarChart = () => {
 
       setApiDataFirst(data);
       setApiDataSecond(data2);
+      setSalariesData(dataSupabase);
+      const sumOfSalaries = dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
+      console.log("Sum of salaries:", sumOfSalaries);
+      console.log("Data from Supabase:", dataSupabase);
+      console.log("Data from Supabase:", dataSupabase2);
+
+      const przychodBrutto = parseFloat(data.totalExpensesCat.pozostaleWplywy) + parseFloat(data.totalExpensesCat.bramka) + parseFloat(dataSupabase2.totalVatValue);
+      console.log("Przychód brutto:", przychodBrutto);
 
 
       // Przygotowanie nowych danych na podstawie kluczy z totalExpensesCat
       const newData = [
-        data.calcFromPairsResult.totalBrutto, // Przykład dla "Wystawione FV"
+        data.totalExpensesCat.pozostaleWplywy, // Przykład dla "Wystawione FV"
         data.totalExpensesCat.bramka,
-        data.totalExpensesCat.bramka,
+        data.totalExpensesCat.platnosciFirmy,
         data.calcFromPairsResult.totalBrutto,
+        dataSupabase2.totalVatValue,
+        przychodBrutto,
         data.calcFromNegativePairsResult.totalBruttoNegative * -1,
         data2.totalExpensesCat.wyplaty * -1,
+        sumOfSalaries,
         data2.totalExpensesCat.zaplaconyVat * -1,
         data.totalExpensesCat.czynsze * -1,
         data2.totalExpensesCat.dochodowy * -1,
+        data2.totalExpensesCat.zus * -1,
         data.totalExpensesCat.subskrypcje * -1,
         data.totalExpensesCat.uslugi * -1,
         data.totalExpensesCat.pozostale * -1, // Przykład dla "Opłacona bramka"
@@ -134,12 +181,12 @@ const BarChart = () => {
       ];
 
       const backgroundColors = chartData.labels.map((_, index) =>
-        index < 4 ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)"
+        index < 6 ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)"
       );
 
       // Przygotowanie kolorów obramowania dla każdego ze słupków
       const borderColors = chartData.labels.map((_, index) =>
-        index < 4 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
+        index < 6 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
       );
 
       setChartData((prevState) => ({
@@ -169,6 +216,8 @@ const BarChart = () => {
     Subskrypcje: { detailKey: "subskrypcjeDetail", source: "first" },
     Usługi: { detailKey: "uslugiDetail", source: "first" },
     Pozostałe: { detailKey: "pozostaleDetail", source: "first" },
+    Firmy: { detailKey: "platnosciFirmyDetail", source: "first" },
+    "Pozostałe wpływy": { detailKey: "pozostaleWplywyDetail", source: "first" },
   };
 
 
@@ -254,7 +303,7 @@ const BarChart = () => {
   if (hasError) {
     return (
       <>
-        <div>Błąd podczas ładowania danych.</div>
+        <div>Brak danych dla wskazanego okresu.</div>
         <div>
           <select
             value={selectedYear}
