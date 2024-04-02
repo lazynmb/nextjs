@@ -29,10 +29,11 @@ const BarChart = () => {
   );
   const [apiDataFirst, setApiDataFirst] = useState({});
   const [apiDataSecond, setApiDataSecond] = useState({});
+  const [apiDataThird, setApiDataThird] = useState({});
   const [salariesData, setSalariesData] = useState([]);
   const [chartData, setChartData] = useState({
     labels: [
-      "Pozostałe wpływy",
+      "Pozostałe (mixy)",
       "Opłacona bramka",
       "Firmy (realne wpłaty na konto)",
       "Wpływy na konto (cashflow)",
@@ -94,9 +95,10 @@ const BarChart = () => {
 
       // Drugie zapytanie do tego samego API z innymi parametrami
       const monthAdd1 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
+      const monthAdd2 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
       const yearAdd1 = parseInt(selectedYear) + 1;
-      let responseAPI2;
 
+      let responseAPI2;
       if (selectedMonth === "12") {
         responseAPI2 = await fetch(
           `/api/databaseFetchData?year=${yearAdd1}&month=01`
@@ -112,8 +114,32 @@ const BarChart = () => {
           throw new Error("Problem with fetching data from second API call");
         }
       }
-
       const fetchedDataAPI2 = await responseAPI2.json();
+
+      let responseAPI3;
+      if (selectedMonth === "12") {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${yearAdd1}&month=02`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else if (selectedMonth === "11") {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${selectedYear}&month=01`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd1}`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      }
+      const fetchedDataAPI3 = await responseAPI3.json();
 
       // trzecie zapytanie do API Supabase
 
@@ -146,9 +172,12 @@ const BarChart = () => {
       console.log("Data from first API call:", data);
       const data2 = fetchedDataAPI2[0];
       console.log("Data from second API call:", data2);
+      const data3 = fetchedDataAPI3[0];
+      console.log("Data from third API call:", data3);
 
       setApiDataFirst(data);
       setApiDataSecond(data2);
+      setApiDataThird(data3);
       setSalariesData(dataSupabase);
       const sumOfSalaries = dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
       console.log("Sum of salaries:", sumOfSalaries);
@@ -170,7 +199,7 @@ const BarChart = () => {
         data.calcFromNegativePairsResult.totalBruttoNegative * -1,
         data2.totalExpensesCat.wyplaty * -1,
         sumOfSalaries,
-        data2.totalExpensesCat.zaplaconyVat * -1,
+        data3.totalExpensesCat.zaplaconyVat * -1,
         data.totalExpensesCat.czynsze * -1,
         data2.totalExpensesCat.dochodowy * -1,
         data2.totalExpensesCat.zus * -1,
@@ -210,7 +239,7 @@ const BarChart = () => {
   const detailMapping = {
     "Opłacona bramka": { detailKey: "bramkaDetail", source: "first" },
     Pensje: { detailKey: "wyplatyDetail", source: "second" },
-    VAT: { detailKey: "zaplaconyVatDetail", source: "second" },
+    VAT: { detailKey: "zaplaconyVatDetail", source: "third" },
     Czynsze: { detailKey: "czynszeDetail", source: "first" },
     Dochodowy: { detailKey: "dochodowyDetail", source: "second" },
     Subskrypcje: { detailKey: "subskrypcjeDetail", source: "first" },
@@ -234,12 +263,19 @@ const BarChart = () => {
         console.log(`Mapping info for label: ${label}`, mappingInfo);
   
         if (mappingInfo) {
-          const detailSource = mappingInfo.source === "first" ? apiDataFirst.categoriesResult.allExpDetail : apiDataSecond.categoriesResult.allExpDetail;
+          let detailSource;
+          if (mappingInfo.source === "first") {
+            detailSource = apiDataFirst.categoriesResult.allExpDetail;
+          } else if (mappingInfo.source === "second") {
+            detailSource = apiDataSecond.categoriesResult.allExpDetail;
+          } else {
+            detailSource = apiDataThird.categoriesResult.allExpDetail;
+          }
           console.log(`Detail source for label: ${label}`, detailSource);
-  
+        
           const details = detailSource[mappingInfo.detailKey];
           console.log(`Details to show for label: ${label}`, details);
-  
+        
           if (details) {
             setDetailsToShow(details);
           } else {

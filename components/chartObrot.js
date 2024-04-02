@@ -29,15 +29,19 @@ const BarChart = () => {
   );
   const [apiDataFirst, setApiDataFirst] = useState({});
   const [apiDataSecond, setApiDataSecond] = useState({});
+  const [apiDataThird, setApiDataThird] = useState({});
   const [salariesData, setSalariesData] = useState([]);
   const [chartData, setChartData] = useState({
     labels: [
-      "Pozostałe wpływy",
+      "Pozostałe (mixy)",
       "Opłacona bramka",
-      "Firmy",
-      "Wpływy na konto",
+      "Firmy (realne wpłaty na konto)",
+      "Wpływy na konto (cashflow)",
+      "Wystawione FV (nieopłacone)",
+      "Przychód brutto (bramka + pozostałe wpływy + wystawione FV)",
       "Pełne koszta",
       "Pensje",
+      "Pensje konto + cash",
       "VAT",
       "Czynsze",
       "Dochodowy",
@@ -79,9 +83,8 @@ const BarChart = () => {
 
 
   const updateChartData = async () => {
-    setHasError(false);
+    setHasError(false); // Reset stanu błędu przed pobraniem danych
     try {
-      console.log("sdfsdfsdfsdfsdfsdfsdf")
       const response = await fetch(
         `/api/databaseFetchData?year=${selectedYear}&month=${selectedMonth}`
       );
@@ -92,9 +95,10 @@ const BarChart = () => {
 
       // Drugie zapytanie do tego samego API z innymi parametrami
       const monthAdd1 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
+      const monthAdd2 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
       const yearAdd1 = parseInt(selectedYear) + 1;
-      let responseAPI2;
 
+      let responseAPI2;
       if (selectedMonth === "12") {
         responseAPI2 = await fetch(
           `/api/databaseFetchData?year=${yearAdd1}&month=01`
@@ -110,29 +114,78 @@ const BarChart = () => {
           throw new Error("Problem with fetching data from second API call");
         }
       }
-
       const fetchedDataAPI2 = await responseAPI2.json();
+
+      let responseAPI3;
+      if (selectedMonth === "12") {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${yearAdd1}&month=02`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else if (selectedMonth === "11") {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${selectedYear}&month=01`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else {
+        responseAPI3 = await fetch(
+          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd1}`
+        );
+        if (!responseAPI3.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      }
+      const fetchedDataAPI3 = await responseAPI3.json();
 
       // trzecie zapytanie do API Supabase
 
 
       const responseSupabase = await fetch(
           `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`);
-
       const dataSupabase = await responseSupabase.json();
 
+      let responseSupabase2;
+      if (selectedMonth === "12") {
+        responseSupabase2 = await fetch(
+          `/api/supabaseInvoicesMonth?year=${yearAdd1}&month=01`
+        );
+        if (!responseSupabase2.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      } else {
+        responseSupabase2 = await fetch(
+          `/api/supabaseInvoicesMonth?year=${selectedYear}&month=${monthAdd1}`
+        );
+        if (!responseSupabase2.ok) {
+          throw new Error("Problem with fetching data from second API call");
+        }
+      }
+
+        const dataSupabase2 = await responseSupabase2.json();
+
       // Zakładamy, że API zwraca tablicę obiektów i interesuje nas pierwszy element
-      const data = fetchedData[0];  
-      const data2 = fetchedDataAPI2[0]
+      const data = fetchedData[0];
       console.log("Data from first API call:", data);
+      const data2 = fetchedDataAPI2[0];
       console.log("Data from second API call:", data2);
+      const data3 = fetchedDataAPI3[0];
+      console.log("Data from third API call:", data3);
 
       setApiDataFirst(data);
       setApiDataSecond(data2);
+      setApiDataThird(data3);
       setSalariesData(dataSupabase);
       const sumOfSalaries = dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
       console.log("Sum of salaries:", sumOfSalaries);
       console.log("Data from Supabase:", dataSupabase);
+      console.log("Data from Supabase:", dataSupabase2);
+
+      const przychodBrutto = parseFloat(data.totalExpensesCat.pozostaleWplywy) + parseFloat(data.totalExpensesCat.bramka) + parseFloat(dataSupabase2.totalVatValue);
+      console.log("Przychód brutto:", przychodBrutto);
 
 
       // Przygotowanie nowych danych na podstawie kluczy z totalExpensesCat
@@ -141,8 +194,11 @@ const BarChart = () => {
         data.totalExpensesCat.bramka,
         data.totalExpensesCat.platnosciFirmy,
         data.calcFromPairsResult.totalBrutto,
+        dataSupabase2.totalVatValue,
+        przychodBrutto,
         data.calcFromNegativePairsResult.totalBruttoNegative * -1,
         data.totalExpensesCat.wyplaty * -1,
+        sumOfSalaries,
         data.totalExpensesCat.zaplaconyVat * -1,
         data.totalExpensesCat.czynsze * -1,
         data.totalExpensesCat.dochodowy * -1,
@@ -154,12 +210,12 @@ const BarChart = () => {
       ];
 
       const backgroundColors = chartData.labels.map((_, index) =>
-        index < 4 ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)"
+        index < 6 ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)"
       );
 
       // Przygotowanie kolorów obramowania dla każdego ze słupków
       const borderColors = chartData.labels.map((_, index) =>
-        index < 4 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
+        index < 6 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
       );
 
       setChartData((prevState) => ({
@@ -183,7 +239,7 @@ const BarChart = () => {
   const detailMapping = {
     "Opłacona bramka": { detailKey: "bramkaDetail", source: "first" },
     Pensje: { detailKey: "wyplatyDetail", source: "second" },
-    VAT: { detailKey: "zaplaconyVatDetail", source: "second" },
+    VAT: { detailKey: "zaplaconyVatDetail", source: "third" },
     Czynsze: { detailKey: "czynszeDetail", source: "first" },
     Dochodowy: { detailKey: "dochodowyDetail", source: "second" },
     Subskrypcje: { detailKey: "subskrypcjeDetail", source: "first" },
@@ -207,12 +263,19 @@ const BarChart = () => {
         console.log(`Mapping info for label: ${label}`, mappingInfo);
   
         if (mappingInfo) {
-          const detailSource = mappingInfo.source === "first" ? apiDataFirst.categoriesResult.allExpDetail : apiDataSecond.categoriesResult.allExpDetail;
+          let detailSource;
+          if (mappingInfo.source === "first") {
+            detailSource = apiDataFirst.categoriesResult.allExpDetail;
+          } else if (mappingInfo.source === "second") {
+            detailSource = apiDataSecond.categoriesResult.allExpDetail;
+          } else {
+            detailSource = apiDataThird.categoriesResult.allExpDetail;
+          }
           console.log(`Detail source for label: ${label}`, detailSource);
-  
+        
           const details = detailSource[mappingInfo.detailKey];
           console.log(`Details to show for label: ${label}`, details);
-  
+        
           if (details) {
             setDetailsToShow(details);
           } else {
