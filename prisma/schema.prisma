@@ -47,6 +47,13 @@ model ResultUncomplete {
   createdAt           DateTime  @default(now())
 }
 
+model Dochod {
+  id       Int      @id @default(autoincrement())
+  month    Int
+  year     Int
+  amount   Float
+}
+
 model ProcessedFile {
   id        Int      @id @default(autoincrement())
   fileName  String   @unique

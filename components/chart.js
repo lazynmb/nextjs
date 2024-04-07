@@ -31,25 +31,9 @@ const BarChart = () => {
   const [apiDataSecond, setApiDataSecond] = useState({});
   const [apiDataThird, setApiDataThird] = useState({});
   const [salariesData, setSalariesData] = useState([]);
+  const [supabase2Data, setSupabase2Data] = useState([]);
   const [chartData, setChartData] = useState({
-    labels: [
-      "Pozostałe (mixy)",
-      "Opłacona bramka",
-      "Firmy (realne wpłaty na konto)",
-      "Wpływy na konto (cashflow)",
-      "Wystawione FV (nieopłacone)",
-      "Przychód brutto (bramka + pozostałe wpływy + wystawione FV)",
-      "Pełne koszta",
-      "Pensje",
-      "Pensje konto + cash",
-      "VAT",
-      "Czynsze",
-      "Dochodowy",
-      "ZUS + PIT",
-      "Subskrypcje",
-      "Usługi",
-      "Pozostałe",
-    ],
+
     datasets: [
       {
         label: "Kwota",
@@ -79,9 +63,6 @@ const BarChart = () => {
     "12",
   ];
 
-
-
-
   const updateChartData = async () => {
     setHasError(false); // Reset stanu błędu przed pobraniem danych
     try {
@@ -95,7 +76,7 @@ const BarChart = () => {
 
       // Drugie zapytanie do tego samego API z innymi parametrami
       const monthAdd1 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
-      const monthAdd2 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
+      const monthAdd2 = `${parseInt(selectedMonth) + 2}`.padStart(2, "0");
       const yearAdd1 = parseInt(selectedYear) + 1;
 
       let responseAPI2;
@@ -133,7 +114,7 @@ const BarChart = () => {
         }
       } else {
         responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd1}`
+          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd2}`
         );
         if (!responseAPI3.ok) {
           throw new Error("Problem with fetching data from second API call");
@@ -143,9 +124,9 @@ const BarChart = () => {
 
       // trzecie zapytanie do API Supabase
 
-
       const responseSupabase = await fetch(
-          `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`);
+        `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`
+      );
       const dataSupabase = await responseSupabase.json();
 
       let responseSupabase2;
@@ -165,67 +146,113 @@ const BarChart = () => {
         }
       }
 
-        const dataSupabase2 = await responseSupabase2.json();
+      const dataSupabase2 = await responseSupabase2.json();
 
       // Zakładamy, że API zwraca tablicę obiektów i interesuje nas pierwszy element
       const data = fetchedData[0];
       console.log("Data from first API call:", data);
       const data2 = fetchedDataAPI2[0];
       console.log("Data from second API call:", data2);
-      const data3 = fetchedDataAPI3[0];
+
+
+      const przychodBrutto =
+      parseFloat(data.totalExpensesCat.pozostaleWplywy) +
+      parseFloat(data.totalExpensesCat.bramka) +
+      parseFloat(dataSupabase2.totalVatValue);
+
+      let data3 = fetchedDataAPI3[0];
+      let zaplaconyVatProjekcja = undefined;
+      if (data3 === undefined) { 
+        zaplaconyVatProjekcja = parseFloat(((przychodBrutto - (przychodBrutto / 1.19)) * -1).toFixed(2))};
+
       console.log("Data from third API call:", data3);
 
       setApiDataFirst(data);
       setApiDataSecond(data2);
       setApiDataThird(data3);
       setSalariesData(dataSupabase);
-      const sumOfSalaries = dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
+      setSupabase2Data(dataSupabase2);
+      const sumOfSalaries =
+        dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
       console.log("Sum of salaries:", sumOfSalaries);
       console.log("Data from Supabase:", dataSupabase);
-      console.log("Data from Supabase:", dataSupabase2);
+      console.log("Data from Supabase2:", dataSupabase2);
 
-      const przychodBrutto = parseFloat(data.totalExpensesCat.pozostaleWplywy) + parseFloat(data.totalExpensesCat.bramka) + parseFloat(dataSupabase2.totalVatValue);
-      console.log("Przychód brutto:", przychodBrutto);
 
+      let zaplaconyVatSuma = typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja : parseFloat(data3.totalExpensesCat.zaplaconyVat);
+
+      const kosztaBrutto = 
+        parseFloat(data2.totalExpensesCat.wyplaty) +
+        zaplaconyVatSuma +
+        parseFloat(data.totalExpensesCat.czynsze) +
+        parseFloat(data2.totalExpensesCat.dochodowy) +
+        parseFloat(data2.totalExpensesCat.zus) +
+        parseFloat(data.totalExpensesCat.subskrypcje) +
+        parseFloat(data.totalExpensesCat.uslugi) +
+        parseFloat(data.totalExpensesCat.pozostale);
 
       // Przygotowanie nowych danych na podstawie kluczy z totalExpensesCat
-      const newData = [
-        data.totalExpensesCat.pozostaleWplywy, // Przykład dla "Wystawione FV"
-        data.totalExpensesCat.bramka,
-        data.totalExpensesCat.platnosciFirmy,
-        data.calcFromPairsResult.totalBrutto,
-        dataSupabase2.totalVatValue,
-        przychodBrutto,
-        data.calcFromNegativePairsResult.totalBruttoNegative * -1,
-        data2.totalExpensesCat.wyplaty * -1,
-        sumOfSalaries,
-        data3.totalExpensesCat.zaplaconyVat * -1,
-        data.totalExpensesCat.czynsze * -1,
-        data2.totalExpensesCat.dochodowy * -1,
-        data2.totalExpensesCat.zus * -1,
-        data.totalExpensesCat.subskrypcje * -1,
-        data.totalExpensesCat.uslugi * -1,
-        data.totalExpensesCat.pozostale * -1, // Przykład dla "Opłacona bramka"
-        // Tutaj kontynuuj z pozostałymi kategoriami zgodnie z etykietami na wykresie
+      const dataWithLabels = [
+        {
+          label: "Pozostałe wpływy",
+          value: data.totalExpensesCat.pozostaleWplywy,
+        },
+        { label: "Opłacona bramka", value: data.totalExpensesCat.bramka },
+        {
+          label: "Wystawione FV (nieopłacone)",
+          value: dataSupabase2.totalVatValue,
+        },
+        {
+          label: "Przychód brutto (bramka + pozostałe wpływy + wystawione FV)",
+          value: przychodBrutto,
+        },
+        {
+          label: "Pełne koszta (konto)",
+          value: kosztaBrutto * -1,
+        },
+        { label: "Pensje m+1", value: data2.totalExpensesCat.wyplaty * -1 },
+        {
+          label: typeof zaplaconyVatProjekcja === 'number' ? "VAT m+2 (PROJEKCJA 19%)" : "VAT m+2",
+          value: typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja * -1 : parseFloat(data3.totalExpensesCat.zaplaconyVat) * -1,
+        },
+        { label: "Czynsze", value: data.totalExpensesCat.czynsze * -1 },
+        {
+          label: "Dochodowy m+1",
+          value: data2.totalExpensesCat.dochodowy * -1,
+        },
+        { label: "ZUS + PIT m+1", value: data2.totalExpensesCat.zus * -1 },
+        { label: "Subskrypcje", value: data.totalExpensesCat.subskrypcje * -1 },
+        { label: "Usługi", value: data.totalExpensesCat.uslugi * -1 },
+        { label: "Pozostałe", value: data.totalExpensesCat.pozostale * -1 },
       ];
 
-      const backgroundColors = chartData.labels.map((_, index) =>
-        index < 6 ? "rgba(54, 162, 235, 0.2)" : "rgba(255, 99, 132, 0.2)"
-      );
+      const labels = dataWithLabels.map((item) => item.label);
+      const newData = dataWithLabels.map((item) => item.value);
 
-      // Przygotowanie kolorów obramowania dla każdego ze słupków
-      const borderColors = chartData.labels.map((_, index) =>
-        index < 6 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
-      );
+      const backgroundColors = labels.map((_, index) => {
+        // Sprawdzamy, czy jesteśmy przy szóstym słupku (index === 5) i czy zaplaconyVatProjekcja jest liczbą
+        if (index === 6 && typeof zaplaconyVatProjekcja === 'number') return "rgba(255, 0, 0, 0.2)"; // Bardziej czerwony
+        else if (index <= 3) return "rgba(54, 162, 235, 0.2)"; // Niebieski
+        else return "rgba(255, 99, 132, 0.2)"; // Czerwony
+      });
+      
+      const borderColors = labels.map((_, index) => {
+        // Sprawdzamy, czy jesteśmy przy szóstym słupku (index === 5) i czy zaplaconyVatProjekcja jest liczbą
+        if (index === 6 && typeof zaplaconyVatProjekcja === 'number') return "rgba(255, 0, 0, 1)"; // Bardziej czerwony
+        else if (index <= 3) return "rgba(54, 162, 235, 1)"; // Niebieski
+        else return "rgba(255, 99, 132, 1)"; // Czerwony
+      });
 
+      // Aktualizacja danych wykresu
       setChartData((prevState) => ({
         ...prevState,
+        labels: labels, // Aktualizacja etykiet
         datasets: [
           {
             ...prevState.datasets[0],
             data: newData,
-            backgroundColor: backgroundColors, // Przypisanie kolorów tła
-            borderColor: borderColors, // Przypisanie kolorów obramowania
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
           },
         ],
       }));
@@ -235,47 +262,49 @@ const BarChart = () => {
     }
   };
 
-
   const detailMapping = {
     "Opłacona bramka": { detailKey: "bramkaDetail", source: "first" },
-    Pensje: { detailKey: "wyplatyDetail", source: "second" },
-    VAT: { detailKey: "zaplaconyVatDetail", source: "third" },
+    "Pensje m+1": { detailKey: "wyplatyDetail", source: "second" },
+    "VAT m+2": { detailKey: "zaplaconyVatDetail", source: "fourth" },
     Czynsze: { detailKey: "czynszeDetail", source: "first" },
-    Dochodowy: { detailKey: "dochodowyDetail", source: "second" },
+    "Dochodowy m+1": { detailKey: "dochodowyDetail", source: "second" },
+    "ZUS + PIT m+1": { detailKey: "zusDetail", source: "second" },
     Subskrypcje: { detailKey: "subskrypcjeDetail", source: "first" },
     Usługi: { detailKey: "uslugiDetail", source: "first" },
     Pozostałe: { detailKey: "pozostaleDetail", source: "first" },
     Firmy: { detailKey: "platnosciFirmyDetail", source: "first" },
     "Pozostałe wpływy": { detailKey: "pozostaleWplywyDetail", source: "first" },
+    "Wystawione FV (nieopłacone)": { detailKey: "transformedInvoicesData", source: "third" },
   };
-
 
   const options = {
     onClick: (event, elements) => {
       console.log("Clicked on chart");
-  
+
       if (elements.length > 0) {
         const { index } = elements[0];
         const label = chartData.labels[index];
         console.log(`Clicked label: ${label}`);
-  
+
         const mappingInfo = detailMapping[label];
         console.log(`Mapping info for label: ${label}`, mappingInfo);
-  
+
         if (mappingInfo) {
           let detailSource;
           if (mappingInfo.source === "first") {
             detailSource = apiDataFirst.categoriesResult.allExpDetail;
           } else if (mappingInfo.source === "second") {
             detailSource = apiDataSecond.categoriesResult.allExpDetail;
+          } else if (mappingInfo.source === "third") {
+            detailSource = supabase2Data;
           } else {
             detailSource = apiDataThird.categoriesResult.allExpDetail;
           }
           console.log(`Detail source for label: ${label}`, detailSource);
-        
+
           const details = detailSource[mappingInfo.detailKey];
           console.log(`Details to show for label: ${label}`, details);
-        
+
           if (details) {
             setDetailsToShow(details);
           } else {

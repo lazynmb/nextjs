@@ -1,0 +1,13 @@
+{
+  "entryFilePath": "pages/page.tsx",
+  "resolveExtensions": [
+    ".js",
+    ".ts",
+    ".tsx"
+  ],
+  "alias": {
+    "@/": "./",
+    "@/pages/": "./pages/",
+    "@/pages/api/": "./pages/api/"
+  }
+}

@@ -64,13 +64,40 @@ export default async function handler(req, res) {
         totalVatValue += productTotalValue + vatValue;
       });
     });
+    
+    const transformedInvoicesData = {};
+    
+    invoicesData.forEach(invoice => {
+      const buyerName = invoice.buyer && invoice.buyer.name ? invoice.buyer.name : "Nieznany kupujący";
+      const invoiceDate = invoice.date ? invoice.date : "Nieznana data";
+      const identifier = `Faktura ${buyerName} z dnia ${invoiceDate}`;
+    
+      let invoiceValueVat = 0;
+      if (invoice.products && Array.isArray(invoice.products)) {
+        invoice.products.forEach(product => {
+          const productTotalValue = parseFloat((product.quantity * product.unit_price / 100).toFixed(2));
+          const vatValue = parseFloat((productTotalValue * product.vat_rate).toFixed(2));
+          invoiceValueVat += productTotalValue + vatValue;
+        });
+      }
+    
+      // Dodaj wartość VAT do odpowiedniego klucza w obiekcie
+      if (!transformedInvoicesData[identifier]) {
+        transformedInvoicesData[identifier] = [invoiceValueVat];
+      } else {
+        transformedInvoicesData[identifier].push(invoiceValueVat);
+      }
+    });
+
 
     console.log('Total value without VAT:', parseFloat(totalNetValueSum.toFixed(2)));
     console.log('Total value with VAT:', parseFloat(totalVatValue.toFixed(2)));
+    console.log('Invoices data:', transformedInvoicesData);
 
     res.status(200).json({
       totalNetValue: parseFloat(totalNetValueSum.toFixed(2)),
-      totalVatValue: parseFloat(totalVatValue.toFixed(2))
+      totalVatValue: parseFloat(totalVatValue.toFixed(2)),
+      transformedInvoicesData
     });
   } catch (error) {
     console.error('Error accessing the database:', error);
