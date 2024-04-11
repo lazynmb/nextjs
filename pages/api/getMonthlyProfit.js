@@ -40,7 +40,7 @@ async function pobranieDanych(year, month) {
     // };
 
 
-    const baseURL = 'http://localhost:3000/'
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
     // Zapytanie do API dla pierwszego zestawu danych
     
     globalData.apiDataFirst = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth}`);
