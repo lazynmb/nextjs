@@ -35,9 +35,8 @@ export default async function handler(req, res) {
     });
 
     // Zwracanie danych jako odpowiedź JSON
-    console.log('Data fetched successfully:', results);
+    console.log('Database fetch data: data fetched successfully:');
     res.status(200).json(results);
-    console.log('Data fetched successfully:');
   } catch (error) {
     console.error('Error accessing the database:', error);
     res.status(500).json({ message: 'Internal Server Error' });

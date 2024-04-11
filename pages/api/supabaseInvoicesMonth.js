@@ -31,8 +31,6 @@ export default async function handler(req, res) {
       .gte('date', startDate)
       .lte('date', endDate);
 
-      console.log('Correction data:', correctionData);
-
     if (correctionError) throw correctionError;
 
     // Replace invoices with their corrections
@@ -45,7 +43,6 @@ export default async function handler(req, res) {
         console.log(`Zastępowanie faktury o ID: ${invoicesData[index].id} korektą o ID: ${correction.id}`);
         invoicesData[index] = correction;
         // Logging the replaced data for verification
-        console.log(`Replaced invoice with correction:`, correction);
       } else {
         // If no duplicate is found, log that information as well
         console.log(`No duplicate found for original_invoice_id: ${correction.original_invoice_id}.`);
@@ -90,9 +87,7 @@ export default async function handler(req, res) {
     });
 
 
-    console.log('Total value without VAT:', parseFloat(totalNetValueSum.toFixed(2)));
-    console.log('Total value with VAT:', parseFloat(totalVatValue.toFixed(2)));
-    console.log('Invoices data:', transformedInvoicesData);
+    console.log('Supabase Invoice fetched data');
 
     res.status(200).json({
       totalNetValue: parseFloat(totalNetValueSum.toFixed(2)),

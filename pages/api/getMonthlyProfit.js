@@ -1,144 +1,150 @@
 import { PrismaClient } from '@prisma/client';
-import { list, del } from '@vercel/blob';
-import { saveToDatabase } from '../../utils/database';
 import fetch from 'node-fetch';
 
 const prisma = new PrismaClient();
 
-export default async function getMonthlyProfit (req, res) {
-    try {
-        const results = await prisma.results.findMany({
-          orderBy: [
-            {
-              year: 'desc',
-            },
-            {
-              month: 'desc',
-            },
-          ],
-          take: 14, // Pobiera 14 ostatnich rekordów, zakładając, że chcesz pominąć dwa najnowsze i zacząć od trzeciego
-        });
-    
-        // Logika do obsługi pominięcia dwóch najnowszych rekordów i pracy z ostatnimi 12 miesiącami
-        const last12MonthsResults = results.slice(2); // Pomija dwa najnowsze rekordy
-  
-      for (let result of last12MonthsResults) {
-        const { year, month } = result;
-        
-        // Zakładam, że getPrihodIKoszty jest twoją funkcją, która zwraca przychód i koszty dla danego miesiąca
-        const { przychod, koszty } = await getPrihodIKoszty(year, month);
-        const profit = przychod - koszty;
-      const response = await fetch(
-        `/api/databaseFetchData?year=${selectedYear}&month=${selectedMonth}`
-      );
+// Globalne zmienne do przechowywania danych
+let globalData = {
+  apiDataFirst: null,
+  apiDataSecond: null,
+  apiDataThird: null,
+  salariesData: null,
+  invoicesData: null,
+};
+
+await prisma.dochod.deleteMany({});
+console.log('Tabela `dochod` została zresetowana.');
+
+// Funkcja do pobierania danych
+async function pobranieDanych(year, month) {
+  try {
+    const fetchData = async (url) => {
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Problem with fetching data");
+        throw new Error(`Problem with fetching data from ${url}`);
       }
-      const fetchedData = await response.json();
+      return response.json();
+    };
 
-      // Drugie zapytanie do tego samego API z innymi parametrami
-      const monthAdd1 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
-      const monthAdd2 = `${parseInt(selectedMonth) + 2}`.padStart(2, "0");
-      const yearAdd1 = parseInt(selectedYear) + 1;
+    // Zmienna na potrzeby wyliczania kolejnych miesięcy i lat
+    let calculatedMonth = month;
+    let calculatedYear = year;
 
-      let responseAPI2;
-      if (selectedMonth === "12") {
-        responseAPI2 = await fetch(
-          `/api/databaseFetchData?year=${yearAdd1}&month=01`
-        );
-        if (!responseAPI2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseAPI2 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd1}`
-        );
-        if (!responseAPI2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      }
-      const fetchedDataAPI2 = await responseAPI2.json();
+    // Reset globalnych danych przed każdym pobraniem
+    // globalData = {
+    //   apiDataFirst: null,
+    //   apiDataSecond: null,
+    //   apiDataThird: null,
+    //   salariesData: null,
+    //   invoicesData: null,
+    // };
 
-      let responseAPI3;
-      if (selectedMonth === "12") {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${yearAdd1}&month=02`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else if (selectedMonth === "11") {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=01`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd2}`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      }
-      const fetchedDataAPI3 = await responseAPI3.json();
 
-      // trzecie zapytanie do API Supabase
+    const baseURL = 'http://localhost:3000/'
+    // Zapytanie do API dla pierwszego zestawu danych
+    
+    globalData.apiDataFirst = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth}`);
 
-      const responseSupabase = await fetch(
-        `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`
-      );
-      const dataSupabase = await responseSupabase.json();
+    // Wyliczenie następnego miesiąca i roku dla apiDataSecond
+    calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
+    calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
+    globalData.apiDataSecond = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-      let responseSupabase2;
-      if (selectedMonth === "12") {
-        responseSupabase2 = await fetch(
-          `/api/supabaseInvoicesMonth?year=${yearAdd1}&month=01`
-        );
-        if (!responseSupabase2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseSupabase2 = await fetch(
-          `/api/supabaseInvoicesMonth?year=${selectedYear}&month=${monthAdd1}`
-        );
-        if (!responseSupabase2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      }
+    // Wyliczenie następnego miesiąca i roku dla apiDataThird
+    calculatedMonth = month;
+    calculatedYear = year;
+// Dodawanie dwóch miesięcy
+    if (calculatedMonth >= 11) { // Jeśli jest listopad lub grudzień
+      calculatedMonth = calculatedMonth === 11 ? 1 : 2; // Ustaw na styczeń lub luty
+      calculatedYear += 1; // Rok musi się zwiększyć, gdy przekraczamy grudzień
+    } else {
+      calculatedMonth += 2; // W innym przypadku dodaj dwa miesiące
+    }
+    globalData.apiDataThird = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-      const dataSupabase2 = await responseSupabase2.json();
+    // Dla salariesData i invoicesData używamy pierwotnych wartości `year` i `month`
+    calculatedMonth = month;
+    calculatedYear = year;
+    calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
+    calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
+    globalData.salariesData = await fetchData(`${baseURL}api/supabaseSalariesMonth?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-      // Zakładamy, że API zwraca tablicę obiektów i interesuje nas pierwszy element
-      const data = fetchedData[0];
-      console.log("Data from first API call:", data);
-      const data2 = fetchedDataAPI2[0];
-      console.log("Data from second API call:", data2);
-      const data3 = fetchedDataAPI3[0];
-      console.log("Data from third API call:", data3);
+    calculatedMonth = month;
+    calculatedYear = year;
+    calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
+    calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
+    globalData.invoicesData = await fetchData(`${baseURL}api/supabaseInvoicesMonth?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-      setApiDataFirst(data);
-      setApiDataSecond(data2);
-      setApiDataThird(data3);
-      setSalariesData(dataSupabase);
-      const sumOfSalaries =
-        dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
-      console.log("Sum of salaries:", sumOfSalaries);
-      console.log("Data from Supabase:", dataSupabase);
-      console.log("Data from Supabase:", dataSupabase2);
+  } catch (error) {
+    console.error("Error during data fetching: ", error);
+  }
+}
 
-      const przychodBrutto =
-        parseFloat(data.totalExpensesCat.pozostaleWplywy) +
-        parseFloat(data.totalExpensesCat.bramka) +
-        parseFloat(dataSupabase2.totalVatValue);
-      console.log("Przychód brutto:", przychodBrutto);
-      const kosztaBrutto = 
-        parseFloat(data2.totalExpensesCat.wyplaty) +
-        parseFloat(data3.totalExpensesCat.zaplaconyVat) +
-        parseFloat(data.totalExpensesCat.czynsze) +
-        parseFloat(data2.totalExpensesCat.dochodowy) +
-        parseFloat(data2.totalExpensesCat.zus) +
-        parseFloat(data.totalExpensesCat.subskrypcje) +
-        parseFloat(data.totalExpensesCat.uslugi) +
-        parseFloat(data.totalExpensesCat.pozostale);
+
+// Funkcja do sumowania danych i wyliczania dochodu
+let dochodBrutto = 0;
+
+async function sumujDaneIRaportujZysk() {    
+  let przychodBrutto =
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.pozostaleWplywy) +
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.bramka) +
+  parseFloat(globalData.invoicesData.totalVatValue);
+const kosztaBrutto = 
+  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.wyplaty) +
+  parseFloat(globalData.apiDataThird[0].totalExpensesCat.zaplaconyVat) +
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.czynsze) +
+  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.dochodowy) +
+  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.zus) +
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.subskrypcje) +
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.uslugi) +
+  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.pozostale);
+  console.log('wypłaty', globalData.apiDataSecond[0].totalExpensesCat.wyplaty, 'zapłacony vat', globalData.apiDataThird[0].totalExpensesCat.zaplaconyVat, 'czynsze', globalData.apiDataFirst[0].totalExpensesCat.czynsze, 'dochodowy', globalData.apiDataSecond[0].totalExpensesCat.dochodowy, 'zus', globalData.apiDataSecond[0].totalExpensesCat.zus, 'subskrypcje', globalData.apiDataFirst[0].totalExpensesCat.subskrypcje, 'usługi', globalData.apiDataFirst[0].totalExpensesCat.uslugi, 'pozostałe', globalData.apiDataFirst[0].totalExpensesCat.pozostale);
+
+dochodBrutto = przychodBrutto + kosztaBrutto;
+console.log('przychód brutto', przychodBrutto, 'koszta brutto', kosztaBrutto, 'dochód brutto', dochodBrutto);
+return dochodBrutto;
+
+}
+
+export default async function  przetwarzajDaneIZapisz() {
+  try {
+    // Pobieranie danych dla 13 ostatnich miesięcy (zakładając, że chcesz pominąć najnowszy)
+    const results = await prisma.result.findMany({
+      orderBy: [
+        {
+          fileName: 'desc',
+        },
+      ],
+      take: 13, // Pobiera 13 rekordów, aby pominąć najnowszy i pracować z 12
+    });
+    
+
+    // Pominięcie najnowszego wpisu i przetwarzanie pozostałych 12
+    const last12MonthsResults = results.slice(3); // Pomija najnowszy rekord
+
+    for (const result of last12MonthsResults) {
+      // Pobranie danych za dany miesiąc
+      await pobranieDanych(result.year, result.month);
+      console.log(`Dane za ${result.year}-${result.month} zostały pobrane.`);
+
+      // Tutaj wywołujesz funkcję sumującą dane i zwracającą wynik, który chcesz zapisać
+      // Zakładam, że funkcja `sumujDaneIRaportujZysk` teraz zwraca wartość, którą chcesz zapisać
+      const dochodBrutto = await sumujDaneIRaportujZysk();
+
+      // Zapis wyniku do bazy danych
+      await prisma.dochod.create({
+        data: {
+          year: result.year,
+          month: result.month,
+          amount: dochodBrutto,
+        },
+      });
+    }
+
+    console.log("Dane za ostatnie 12 miesięcy zostały przetworzone i zapisane.");
+  } catch (error) {
+    console.error("Błąd podczas przetwarzania danych: ", error);
+  }
+}
+
+

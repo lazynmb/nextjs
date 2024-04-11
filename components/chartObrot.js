@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../components/modal";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,6 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+
 
 ChartJS.register(
   CategoryScale,

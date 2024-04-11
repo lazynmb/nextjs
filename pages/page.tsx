@@ -5,6 +5,8 @@ import '../styles/custom.css';
 import BarChart from '../components/chart';
 import BarChartObrot from '../components/chartObrot';
 import ResetDatabase from '../components/resetDatabase';
+import ResetDatabaseDochodButton from '../components/resetDatabaseDochod';
+import ZyskiWykres from '../components/chartDochodRok';
 
 interface CategoryValues {
   [categoryName: string]: number[];
@@ -433,9 +435,15 @@ export default function Page() {
         </div>
         <BarChartObrot />
       </div>
+      <div>
+        <ZyskiWykres />
+      </div>
       </div>
       <div>
         <ResetDatabase />
+      </div>
+      <div>
+        <ResetDatabaseDochodButton />
       </div>
     </div>
     

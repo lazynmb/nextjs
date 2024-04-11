@@ -22,9 +22,8 @@ export default async function handler(req, res) {
       .eq('year', year)
       .eq('month', month);
        // Zwracanie danych jako odpowiedź JSON
-  console.log('Data fetched successfully:');
   res.status(200).json(data);
-  console.log('Data fetched successfully:');
+  console.log('Supabase Salaries Data fetched successfully');
 } catch (error) {
   console.error('Error accessing the database:', error);
   res.status(500).json({ message: 'Internal Server Error' });
