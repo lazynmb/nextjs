@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
+import calculateAverageExpenses from '../../utils/calculateAverageExpenses';
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,7 @@ async function pobranieDanych(year, month) {
     //   salariesData: null,
     //   invoicesData: null,
     // };
-
+    console.log('funkcja wysyla ', month, year)
 
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
     // Zapytanie do API dla pierwszego zestawu danych
@@ -84,61 +85,72 @@ async function pobranieDanych(year, month) {
 // Funkcja do sumowania danych i wyliczania dochodu
 let dochodBrutto = 0;
 
-async function sumujDaneIRaportujZysk() {    
-  let przychodBrutto =
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.pozostaleWplywy) +
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.bramka) +
-  parseFloat(globalData.invoicesData.totalVatValue);
-const kosztaBrutto = 
-  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.wyplaty) +
-  parseFloat(globalData.apiDataThird[0].totalExpensesCat.zaplaconyVat) +
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.czynsze) +
-  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.dochodowy) +
-  parseFloat(globalData.apiDataSecond[0].totalExpensesCat.zus) +
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.subskrypcje) +
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.uslugi) +
-  parseFloat(globalData.apiDataFirst[0].totalExpensesCat.pozostale);
-  console.log('wypłaty', globalData.apiDataSecond[0].totalExpensesCat.wyplaty, 'zapłacony vat', globalData.apiDataThird[0].totalExpensesCat.zaplaconyVat, 'czynsze', globalData.apiDataFirst[0].totalExpensesCat.czynsze, 'dochodowy', globalData.apiDataSecond[0].totalExpensesCat.dochodowy, 'zus', globalData.apiDataSecond[0].totalExpensesCat.zus, 'subskrypcje', globalData.apiDataFirst[0].totalExpensesCat.subskrypcje, 'usługi', globalData.apiDataFirst[0].totalExpensesCat.uslugi, 'pozostałe', globalData.apiDataFirst[0].totalExpensesCat.pozostale);
+async function sumujDaneIRaportujZysk() {
+  // Funkcja pomocnicza do bezpiecznego parsowania i logowania brakujących danych
+  let dataMissing = false;  // flaga, że brakuje danych
 
-dochodBrutto = przychodBrutto + kosztaBrutto;
-console.log('przychód brutto', przychodBrutto, 'koszta brutto', kosztaBrutto, 'dochód brutto', dochodBrutto);
-return dochodBrutto;
+  async function parseOrLog(value, label) {
+      if (value !== null && value !== undefined) {
+          return parseFloat(parseFloat(value).toFixed(2));
+      } else {
+          console.log(`Brak danych dla: ${label}`);
+          dataMissing = true;  // Ustawiamy flagę na true, gdy brakuje danych
+          const average = await calculateAverageExpenses(label);  // Wywołanie funkcji obliczającej średnią
+          return parseFloat(average); 
+      }
+  }
 
+  let przychodBrutto = 0;
+  przychodBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.pozostaleWplywy, 'pozostaleWplywy');
+  przychodBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.bramka, 'bramka');
+  przychodBrutto += await parseOrLog(globalData.invoicesData?.totalVatValue, 'VAT z faktur');
+
+  let kosztaBrutto = 0;
+  kosztaBrutto += await parseOrLog(globalData.apiDataSecond[0]?.totalExpensesCat.wyplaty, 'wyplaty');
+  kosztaBrutto += await parseOrLog(globalData.apiDataThird[0]?.totalExpensesCat.zaplaconyVat, 'zaplaconyVat');
+  kosztaBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.czynsze, 'czynsze');
+  kosztaBrutto += await parseOrLog(globalData.apiDataSecond[0]?.totalExpensesCat.dochodowy, 'dochodowy');
+  kosztaBrutto += await parseOrLog(globalData.apiDataSecond[0]?.totalExpensesCat.zus, 'zus');
+  kosztaBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.subskrypcje, 'subskrypcje');
+  kosztaBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.uslugi, 'uslugi');
+  kosztaBrutto += await parseOrLog(globalData.apiDataFirst[0]?.totalExpensesCat.pozostale, 'pozostałe koszty');
+
+  console.log('przychód brutto:', przychodBrutto, 'koszta brutto:', kosztaBrutto);
+
+  let dochodBrutto = przychodBrutto + kosztaBrutto;
+
+  // Zaokrąglenie dochodu brutto do 2 miejsc po przecinku
+  dochodBrutto = parseFloat(dochodBrutto.toFixed(2));
+
+  console.log('przychód brutto:', przychodBrutto, 'koszta brutto:', kosztaBrutto, 'dochód brutto:', dochodBrutto);
+  return {
+    dochodBrutto: dochodBrutto,
+    isComplete: !dataMissing  // Jeśli dataMissing jest false, isComplete będzie true
+};
 }
 
 export default async function  przetwarzajDaneIZapisz() {
   try {
-    // Pobieranie danych dla 13 ostatnich miesięcy (zakładając, że chcesz pominąć najnowszy)
     const results = await prisma.result.findMany({
-      orderBy: [
-        {
-          fileName: 'desc',
-        },
-      ],
-      take: 13, // Pobiera 13 rekordów, aby pominąć najnowszy i pracować z 12
+        orderBy: [
+            { fileName: 'desc' },
+        ],
+        take: 12,
     });
-    
 
-    // Pominięcie najnowszego wpisu i przetwarzanie pozostałych 12
-    const last12MonthsResults = results.slice(3); // Pomija najnowszy rekord
 
-    for (const result of last12MonthsResults) {
-      // Pobranie danych za dany miesiąc
-      await pobranieDanych(result.year, result.month);
-      console.log(`Dane za ${result.year}-${result.month} zostały pobrane.`);
+    for (const result of results) {
+        await pobranieDanych(result.year, result.month);
+        const { dochodBrutto, isComplete } = await sumujDaneIRaportujZysk();  // Odebranie obu wartości
 
-      // Tutaj wywołujesz funkcję sumującą dane i zwracającą wynik, który chcesz zapisać
-      // Zakładam, że funkcja `sumujDaneIRaportujZysk` teraz zwraca wartość, którą chcesz zapisać
-      const dochodBrutto = await sumujDaneIRaportujZysk();
-
-      // Zapis wyniku do bazy danych
-      await prisma.dochod.create({
-        data: {
-          year: result.year,
-          month: result.month,
-          amount: dochodBrutto,
-        },
-      });
+        await prisma.dochod.create({
+            data: {
+                year: result.year,
+                month: result.month,
+                amount: dochodBrutto,
+                isDataComplete: isComplete  // Użycie flagi isComplete
+            },
+        });
     }
 
     console.log("Dane za ostatnie 12 miesięcy zostały przetworzone i zapisane.");

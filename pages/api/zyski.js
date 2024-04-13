@@ -14,7 +14,6 @@ export default async function handler(req, res) {
             take: 12,
         });
         res.status(200).json(zyski);
-        console.log('Zyski:', zyski);
       } catch (error) {
         console.error(error); // Dla celów debugowania
         res.status(500).json({ message: "Nie udało się pobrać danych", error: error.message });

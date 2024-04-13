@@ -24,6 +24,7 @@
     "@vercel/postgres": "^0.7.2",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.2",
+    "chartjs-plugin-annotation": "^3.0.1",
     "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

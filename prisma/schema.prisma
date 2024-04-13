@@ -52,6 +52,7 @@ model Dochod {
   month    Int
   year     Int
   amount   Float
+  isDataComplete Boolean
 }
 
 model ProcessedFile {

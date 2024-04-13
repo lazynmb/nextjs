@@ -7,6 +7,7 @@ import BarChartObrot from '../components/chartObrot';
 import ResetDatabase from '../components/resetDatabase';
 import ResetDatabaseDochodButton from '../components/resetDatabaseDochod';
 import ZyskiWykres from '../components/chartDochodRok';
+import TestButton from '../components/test';
 
 interface CategoryValues {
   [categoryName: string]: number[];
@@ -444,6 +445,9 @@ export default function Page() {
       </div>
       <div>
         <ResetDatabaseDochodButton />
+      </div>
+      <div>
+       <TestButton />
       </div>
     </div>
     
