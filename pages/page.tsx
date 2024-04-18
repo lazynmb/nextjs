@@ -8,6 +8,7 @@ import ResetDatabase from '../components/resetDatabase';
 import ResetDatabaseDochodButton from '../components/resetDatabaseDochod';
 import ZyskiWykres from '../components/chartDochodRok';
 import TestButton from '../components/test';
+import Dashboard from '../components/dashboardChart';
 
 interface CategoryValues {
   [categoryName: string]: number[];
@@ -408,7 +409,7 @@ export default function Page() {
   return (
     
     <div className="containerMain">
-      <div className="gornyPanel">
+      {/* <div className="gornyPanel">
         <div className="container2">
         <DataViewer />
           <div className="loadButton">
@@ -422,24 +423,20 @@ export default function Page() {
             <input type="file" onChange={handleFileUpload} />
           </div>
           </div>
-      </div>
+      </div> */}
       <div className="wykresPanel">
-      <div className="container3">
-        <div className='title'>
-          <h3>Podsumowanie miesiaca (wypłaty, cit m+1 vat m+2)</h3>
-        </div>
-        <BarChart />
-      </div>
-      <div className="container3">
+
+      {/* <div className="container3">
         <div className='title'>
           <h3>Cashflow miesiąc</h3>
         </div>
         <BarChartObrot />
-      </div>
+      </div> */}
       <div>
-        <ZyskiWykres />
+        <Dashboard />
       </div>
       </div>
+
       <div>
         <ResetDatabase />
       </div>

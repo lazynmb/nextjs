@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-
 const prisma = new PrismaClient();
 
-export default async function calculateAverageExpenses(category) {
+export default async function handler(req, res) {
+  const { category } = req.query;
+
   try {
-    const prisma = new PrismaClient();
     // Pobierz 3 ostatnie rekordy
     const results = await prisma.result.findMany({
       take: 3,
@@ -13,7 +13,7 @@ export default async function calculateAverageExpenses(category) {
       },
     });
 
-    // Sprawdzenie, czy pobrano jakiekolwiek rekordy
+
     if (results.length === 0) {
       console.log("Nie znaleziono rekordów.");
       return;
@@ -24,6 +24,7 @@ export default async function calculateAverageExpenses(category) {
 
     results.forEach(result => {
       const value = result.totalExpensesCat[category];
+      console.log(`Wartość dla kategorii ${category}:`, value);
       if (value) {
         const numericValue = parseFloat(value.replace(/,/g, '')); // Usuwa przecinki i konwertuje string na float
         if (!isNaN(numericValue)) {
@@ -40,8 +41,9 @@ export default async function calculateAverageExpenses(category) {
 
     const average = (sum / count).toFixed(2); // Zaokrąglenie do dwóch miejsc po przecinku
     console.log(`Średni wydatek dla kategorii ${category}:`, average);
-    return average;
+    res.status(200).json({ average });  // Wysyłanie odpowiedzi JSON z obliczoną średnią
   } catch (error) {
     console.error("Błąd podczas przetwarzania danych:", error);
+    res.status(500).send("Wewnętrzny błąd serwera");  // Wysyłanie odpowiedzi HTTP z kodem 500
   }
 }

@@ -25,7 +25,10 @@ body {
   .modal-children h6 {
     font-size: 16px; /* Zmniejsz rozmiar czcionki dla nagłówków */
   }
-
+  
+  td.red-background {
+    border: 2px solid #ffa400 !important;
+}
 
 }
 .header {
@@ -165,4 +168,119 @@ body {
   height: 100%;
   grid-auto-flow: row;
   overflow: visible;
+}
+
+button {
+  padding: 5px 10px;
+  margin: 5px;
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #e2e2e2;
+}
+
+
+
+/* styles.css - Załóżmy, że plik ze stylami to styles.css */
+.table-modern {
+  width: 100%;
+  background-color: #fff;
+  color: #333;
+  border-collapse: collapse;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.table-modern th,
+.table-modern td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.table-modern thead {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.table-modern thead th {
+  font-weight: bold;
+}
+
+.table-modern tfoot td {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.table-modern tr:hover {
+  background-color: #f5f5f5;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.nav-buttons button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-left: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  border-radius: 50%; /* Zaokrąglone przyciski */
+  font-size: 16px; /* Większe przyciski */
+}
+
+.nav-buttons button:hover {
+  background-color: #45a049;
+}
+
+.button-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+/* Custom scrollbar for the table container */
+.table-container {
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+
+
+
+
+#ffa400{
+  background-color: #ffa400 !important;
+}
+
+
+.tabelka{
+
+  overflow: hidden;
+  margin-top: 10%;
+  margin-right: -20%;
+  max-width: 30%;
+  position: right;
+
+}
+
+.wykreswykres {
+  flex: auto;
+  max-width: 70%;
+  height: fit-content;
+}
+
+.wykreswykres2 {
+  flex: auto;
+  overflow: visible;
+  margin-top: -20%;  
+  max-width: 65%;
+
 }

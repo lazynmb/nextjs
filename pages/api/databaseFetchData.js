@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   }
 
   const { year, month } = req.query;
+  console.log('Database fetch data: fetching data for year and month:', year, month);
 
   if (!year || !month) {
     return res.status(400).json({ message: 'Missing required query parameters: year and month' });

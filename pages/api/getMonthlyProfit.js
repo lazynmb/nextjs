@@ -27,34 +27,24 @@ async function pobranieDanych(year, month) {
       return response.json();
     };
 
-    // Zmienna na potrzeby wyliczania kolejnych miesięcy i lat
     let calculatedMonth = month;
     let calculatedYear = year;
 
-    // Reset globalnych danych przed każdym pobraniem
-    // globalData = {
-    //   apiDataFirst: null,
-    //   apiDataSecond: null,
-    //   apiDataThird: null,
-    //   salariesData: null,
-    //   invoicesData: null,
-    // };
     console.log('funkcja wysyla ', month, year)
 
     const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
-    // Zapytanie do API dla pierwszego zestawu danych
-    
+
+    // 1. Zapytanie do API dla pierwszego zestawu danych
     globalData.apiDataFirst = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth}`);
 
-    // Wyliczenie następnego miesiąca i roku dla apiDataSecond
+    // 2. zapytanie do API i wyliczenie następnego miesiąca i roku dla apiDataSecond
     calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
     calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
     globalData.apiDataSecond = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-    // Wyliczenie następnego miesiąca i roku dla apiDataThird
-    calculatedMonth = month;
-    calculatedYear = year;
-// Dodawanie dwóch miesięcy
+    // 3. zapytanie do API i wyliczenie następnego miesiąca i roku dla apiDataThird
+    calculatedMonth = month; //resetujemy wartość miesiąca
+    calculatedYear = year; //resetujemy wartość roku
     if (calculatedMonth >= 11) { // Jeśli jest listopad lub grudzień
       calculatedMonth = calculatedMonth === 11 ? 1 : 2; // Ustaw na styczeń lub luty
       calculatedYear += 1; // Rok musi się zwiększyć, gdy przekraczamy grudzień
@@ -63,13 +53,14 @@ async function pobranieDanych(year, month) {
     }
     globalData.apiDataThird = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
-    // Dla salariesData i invoicesData używamy pierwotnych wartości `year` i `month`
+    // 4. zapytanie do API i wyliczenie następnego miesiąca i roku dla salariesData
     calculatedMonth = month;
     calculatedYear = year;
     calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
     calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
     globalData.salariesData = await fetchData(`${baseURL}api/supabaseSalariesMonth?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
 
+    // 5. zapytanie do API i wyliczenie następnego miesiąca i roku dla invoicesData
     calculatedMonth = month;
     calculatedYear = year;
     calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;

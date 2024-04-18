@@ -20,13 +20,17 @@ ChartJS.register(
   Legend
 );
 
-const BarChart = () => {
-  const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
-  );
-  const [selectedMonth, setSelectedMonth] = useState(
-    (new Date().getMonth() + 1).toString().padStart(2, "0")
-  );
+const BarChart = ({ monthData }) => {
+
+    const updateChartState = (data) => {
+    setApiDataFirst(data.apiDataFirst);
+    setApiDataSecond(data.apiDataSecond);
+    setApiDataThird(data.apiDataThird);
+    setSalariesData(data.salariesData);
+    setSupabase2Data(data.supabase2Data);
+    // Tutaj możesz także aktualizować dane wykresu, etc.
+  };
+
   const [apiDataFirst, setApiDataFirst] = useState({});
   const [apiDataSecond, setApiDataSecond] = useState({});
   const [apiDataThird, setApiDataThird] = useState({});
@@ -47,160 +51,103 @@ const BarChart = () => {
   const [detailsToShow, setDetailsToShow] = useState({});
   const [hasError, setHasError] = useState(false);
 
-  const years = ["2022", "2023", "2024"];
-  const months = [
-    "01",
-    "02",
-    "03",
-    "04",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-  ];
+  useEffect(() => {
+    if (monthData.year && monthData.month) {
+      updateChartData(monthData.year, monthData.month);
+    }
+  }, [monthData]);
 
-  const updateChartData = async () => {
+  const saveDataToCache = (key, data) => {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`Data saved to cache with key ${key}`);
+  };
+
+
+  const updateChartData = async (year, month) => {
+
+    year = parseInt(year);
+    month = parseInt(month);
+    const storageKey = `chartData-${year}-${month}`;
     setHasError(false); // Reset stanu błędu przed pobraniem danych
+
     try {
-      const response = await fetch(
-        `/api/databaseFetchData?year=${selectedYear}&month=${selectedMonth}`
-      );
-      if (!response.ok) {
-        throw new Error("Problem with fetching data");
-      }
-      const fetchedData = await response.json();
-
-      // Drugie zapytanie do tego samego API z innymi parametrami
-      const monthAdd1 = `${parseInt(selectedMonth) + 1}`.padStart(2, "0");
-      const monthAdd2 = `${parseInt(selectedMonth) + 2}`.padStart(2, "0");
-      const yearAdd1 = parseInt(selectedYear) + 1;
-
-      let responseAPI2;
-      if (selectedMonth === "12") {
-        responseAPI2 = await fetch(
-          `/api/databaseFetchData?year=${yearAdd1}&month=01`
-        );
-        if (!responseAPI2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseAPI2 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd1}`
-        );
-        if (!responseAPI2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      }
-      const fetchedDataAPI2 = await responseAPI2.json();
-
-      let responseAPI3;
-      if (selectedMonth === "12") {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${yearAdd1}&month=02`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else if (selectedMonth === "11") {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=01`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseAPI3 = await fetch(
-          `/api/databaseFetchData?year=${selectedYear}&month=${monthAdd2}`
-        );
-        if (!responseAPI3.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      }
-      const fetchedDataAPI3 = await responseAPI3.json();
-
-      // trzecie zapytanie do API Supabase
-
-      const responseSupabase = await fetch(
-        `/api/supabaseSalariesMonth?year=${selectedYear}&month=${selectedMonth}`
-      );
-      const dataSupabase = await responseSupabase.json();
-
-      let responseSupabase2;
-      if (selectedMonth === "12") {
-        responseSupabase2 = await fetch(
-          `/api/supabaseInvoicesMonth?year=${yearAdd1}&month=01`
-        );
-        if (!responseSupabase2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
-      } else {
-        responseSupabase2 = await fetch(
-          `/api/supabaseInvoicesMonth?year=${selectedYear}&month=${monthAdd1}`
-        );
-        if (!responseSupabase2.ok) {
-          throw new Error("Problem with fetching data from second API call");
-        }
+      const cachedData = localStorage.getItem(storageKey);
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        console.log("Using cached data for:", storageKey);
+        updateChartState(parsedData);
+        return;
       }
 
-      const dataSupabase2 = await responseSupabase2.json();
+      const responses = await Promise.all([
+        fetch(`/api/databaseFetchData?year=${year}&month=${month}`),
+        month === 12 ? 
+          fetch(`/api/databaseFetchData?year=${year+1}&month=01`) : 
+          fetch(`/api/databaseFetchData?year=${year}&month=${month+1}`),
+        month === 12 ? 
+          fetch(`/api/databaseFetchData?year=${year+1}&month=02`) : 
+          fetch(`/api/databaseFetchData?year=${year}&month=${month+2}`),
+        fetch(`/api/supabaseSalariesMonth?year=${year}&month=${month}`),
+        month === 12 ? 
+          fetch(`/api/supabaseInvoicesMonth?year=${year+1}&month=01`) :
+          fetch(`/api/supabaseInvoicesMonth?year=${year}&month=${month+1}`)
+      ]);
 
-      // Zakładamy, że API zwraca tablicę obiektów i interesuje nas pierwszy element
-      const data = fetchedData[0];
-      console.log("Data from first API call:", data);
-      const data2 = fetchedDataAPI2[0];
-      console.log("Data from second API call:", data2);
+      const [apiData1, apiData2, apiData3, salaryData, supabaseData2] = await Promise.all(responses.map(res => res.json()));
 
+      console.log("Fetched data:", apiData1[0], apiData2, apiData3, salaryData, supabaseData2);
+
+      const combinedData = {
+        apiDataFirst: apiData1[0],
+        apiDataSecond: apiData2[0],
+        apiDataThird: apiData3[0],
+        salariesData: salaryData,
+        supabase2Data: supabaseData2
+      };
+  
+      updateChartState(combinedData);
+
+      console.log('dan sa tu', apiDataFirst.totalExpensesCat.pozostaleWplywy)
 
       const przychodBrutto =
-      parseFloat(data.totalExpensesCat.pozostaleWplywy) +
-      parseFloat(data.totalExpensesCat.bramka) +
-      parseFloat(dataSupabase2.totalVatValue);
+      parseFloat(apiDataFirst.totalExpensesCat.pozostaleWplywy) +
+      parseFloat(apiDataFirst.totalExpensesCat.bramka) +
+      parseFloat(supabaseData2.totalVatValue);
 
-      let data3 = fetchedDataAPI3[0];
       let zaplaconyVatProjekcja = undefined;
-      if (data3 === undefined) { 
+      if (apiDataThird === undefined) { 
         zaplaconyVatProjekcja = parseFloat(((przychodBrutto - (przychodBrutto / 1.19)) * -1).toFixed(2))};
 
-      console.log("Data from third API call:", data3);
-
-      setApiDataFirst(data);
-      setApiDataSecond(data2);
-      setApiDataThird(data3);
-      setSalariesData(dataSupabase);
-      setSupabase2Data(dataSupabase2);
-      const sumOfSalaries =
-        dataSupabase.reduce((sum, current) => sum + current.amount, 0) / 100;
-      console.log("Sum of salaries:", sumOfSalaries);
-      console.log("Data from Supabase:", dataSupabase);
-      console.log("Data from Supabase2:", dataSupabase2);
-
-
-      let zaplaconyVatSuma = typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja : parseFloat(data3.totalExpensesCat.zaplaconyVat);
+      let zaplaconyVatSuma = typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja : parseFloat(apiDataThird.totalExpensesCat.zaplaconyVat);
 
       const kosztaBrutto = 
-        parseFloat(data2.totalExpensesCat.wyplaty) +
-        zaplaconyVatSuma +
-        parseFloat(data.totalExpensesCat.czynsze) +
-        parseFloat(data2.totalExpensesCat.dochodowy) +
-        parseFloat(data2.totalExpensesCat.zus) +
-        parseFloat(data.totalExpensesCat.subskrypcje) +
-        parseFloat(data.totalExpensesCat.uslugi) +
-        parseFloat(data.totalExpensesCat.pozostale);
+      parseFloat(apiDataSecond.totalExpensesCat.wyplaty) +
+      zaplaconyVatSuma +
+      parseFloat(apiDataFirst.totalExpensesCat.czynsze) +
+      parseFloat(apiDataSecond.totalExpensesCat.dochodowy) +
+      parseFloat(apiDataSecond.totalExpensesCat.zus) +
+      parseFloat(apiDataFirst.totalExpensesCat.subskrypcje) +
+      parseFloat(apiDataFirst.totalExpensesCat.uslugi) +
+      parseFloat(apiDataFirst.totalExpensesCat.pozostale);
+      console.log("Koszta brutto:", kosztaBrutto);
+
+      const sumOfSalaries =
+      salaryData.reduce((sum, current) => sum + current.amount, 0) / 100;
+
+
+
+      console.log('balblalblal', apiDataFirst.totalExpensesCat)
 
       // Przygotowanie nowych danych na podstawie kluczy z totalExpensesCat
       const dataWithLabels = [
         {
           label: "Pozostałe wpływy",
-          value: data.totalExpensesCat.pozostaleWplywy,
+          value: apiDataFirst.totalExpensesCat.pozostaleWplywy,
         },
-        { label: "Opłacona bramka", value: data.totalExpensesCat.bramka },
+        { label: "Opłacona bramka", value: apiDataFirst.totalExpensesCat.bramka },
         {
           label: "Wystawione FV (nieopłacone)",
-          value: dataSupabase2.totalVatValue,
+          value: supabaseData2.totalVatValue,
         },
         {
           label: "Przychód brutto (bramka + pozostałe wpływy + wystawione FV)",
@@ -210,20 +157,20 @@ const BarChart = () => {
           label: "Pełne koszta (konto)",
           value: kosztaBrutto * -1,
         },
-        { label: "Pensje m+1", value: data2.totalExpensesCat.wyplaty * -1 },
+        { label: "Pensje m+1", value: apiDataSecond.totalExpensesCat.wyplaty * -1 },
         {
           label: typeof zaplaconyVatProjekcja === 'number' ? "VAT m+2 (PROJEKCJA 19%)" : "VAT m+2",
-          value: typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja * -1 : parseFloat(data3.totalExpensesCat.zaplaconyVat) * -1,
+          value: typeof zaplaconyVatProjekcja === 'number' ? zaplaconyVatProjekcja * -1 : parseFloat(apiDataThird.totalExpensesCat.zaplaconyVat) * -1,
         },
-        { label: "Czynsze", value: data.totalExpensesCat.czynsze * -1 },
+        { label: "Czynsze", value: apiDataFirst.totalExpensesCat.czynsze * -1 },
         {
           label: "Dochodowy m+1",
-          value: data2.totalExpensesCat.dochodowy * -1,
+          value: apiDataSecond.totalExpensesCat.dochodowy * -1,
         },
-        { label: "ZUS + PIT m+1", value: data2.totalExpensesCat.zus * -1 },
-        { label: "Subskrypcje", value: data.totalExpensesCat.subskrypcje * -1 },
-        { label: "Usługi", value: data.totalExpensesCat.uslugi * -1 },
-        { label: "Pozostałe", value: data.totalExpensesCat.pozostale * -1 },
+        { label: "ZUS + PIT m+1", value: apiDataSecond.totalExpensesCat.zus * -1 },
+        { label: "Subskrypcje", value: apiDataFirst.totalExpensesCat.subskrypcje * -1 },
+        { label: "Usługi", value: apiDataFirst.totalExpensesCat.uslugi * -1 },
+        { label: "Pozostałe", value: apiDataFirst.totalExpensesCat.pozostale * -1 },
       ];
 
       const labels = dataWithLabels.map((item) => item.label);
@@ -261,6 +208,8 @@ const BarChart = () => {
       setHasError(true); // Ustaw stan błędu, jeśli wystąpi problem podczas pobierania danych
     }
   };
+
+
 
   const detailMapping = {
     "Opłacona bramka": { detailKey: "bramkaDetail", source: "first" },
@@ -369,58 +318,14 @@ const BarChart = () => {
     return (
       <>
         <div>Brak danych dla wskazanego okresu.</div>
-        <div>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            {months.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <button onClick={updateChartData}>Zatwierdź</button>
-        </div>
+        
       </>
     );
   }
 
   return (
     <>
-      <div>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-        >
-          {years.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-        >
-          {months.map((month) => (
-            <option key={month} value={month}>
-              {month}
-            </option>
-          ))}
-        </select>
-        <button onClick={updateChartData}>Zatwierdź</button>
-      </div>
+
       <Bar data={chartData} options={options} />
       {detailsToShow && Object.keys(detailsToShow).length > 0 && (
         <Modal title="Szczegóły" onClose={() => setDetailsToShow({})}>
