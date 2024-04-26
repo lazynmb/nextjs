@@ -1,4 +1,5 @@
 export default async function pobranieDanych(year, month) {
+  console.log("Fetching data for DOCHODY year and month:", year, month);
     try {
         const globalData = {
             apiDataFirst: null,
@@ -22,12 +23,14 @@ export default async function pobranieDanych(year, month) {
       const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
   
       // 1. Zapytanie do API dla pierwszego zestawu danych
-      globalData.apiDataFirst = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth}`);
+      console.log("API1");
+      globalData.apiDataFirst = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
   
       // 2. zapytanie do API i wyliczenie następnego miesiąca i roku dla apiDataSecond
       calculatedMonth = calculatedMonth === 12 ? 1 : calculatedMonth + 1;
       calculatedYear = calculatedMonth === 1 ? calculatedYear + 1 : calculatedYear;
       globalData.apiDataSecond = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
+      console.log("API2", calculatedMonth, calculatedYear);
   
       // 3. zapytanie do API i wyliczenie następnego miesiąca i roku dla apiDataThird
       calculatedMonth = month; //resetujemy wartość miesiąca
@@ -39,6 +42,7 @@ export default async function pobranieDanych(year, month) {
         calculatedMonth += 2; // W innym przypadku dodaj dwa miesiące
       }
       globalData.apiDataThird = await fetchData(`${baseURL}api/databaseFetchData?year=${calculatedYear}&month=${calculatedMonth.toString().padStart(2, '0')}`);
+      console.log("API3", calculatedMonth, calculatedYear);
   
       // 4. zapytanie do API i wyliczenie następnego miesiąca i roku dla salariesData
       calculatedMonth = month;
