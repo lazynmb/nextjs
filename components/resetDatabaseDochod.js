@@ -10,6 +10,11 @@ function ResetDatabaseDochodButton() {
 
     try {
       // Drugie zapytanie do API: Pobieranie zysków miesięcznych
+      const reset = await fetch('/api/apiResetDatabaseDochod', { method: 'POST' });
+      if (!reset.ok) {
+        throw new Error('Problem z pobieraniem danych o zyskach miesięcznych.');
+      }
+      const resetResult = await reset.json();
       const profitResponse = await fetch('/api/getMonthlyProfit', { method: 'POST' });
       if (!profitResponse.ok) {
         throw new Error('Problem z pobieraniem danych o zyskach miesięcznych.');

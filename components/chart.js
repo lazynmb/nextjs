@@ -178,7 +178,7 @@ const BarChart = ({ monthData }) => {
   }
 
   let dochodowyProjekcja = {
-      value: parseFloat(apiDataSecond.totalExpensesCat?.dochodowy),
+      value: -parseFloat(apiDataSecond.totalExpensesCat?.dochodowy),
       isProjected: false
   };
   if (isNaN(dochodowyProjekcja.value)) {
